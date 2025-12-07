@@ -20,11 +20,11 @@ var instrumentBase = []struct {
 	AssetType string
 	BaseFX    string // which macro country code/currency drives it
 }{
-	{"US500", "index", "USA"},
-	{"US100", "index", "USA"},
+	{"US500", "index", "USD"},
+	{"US100", "index", "USD"},
 	{"JP225", "index", "JPY"}, // Nikkei 225
-	{"XAUUSD", "metal", "USA"},
-	{"XAGUSD", "metal", "USA"},
+	{"XAUUSD", "metal", "USD"},
+	{"XAGUSD", "metal", "USD"},
 }
 
 // BuildInstrumentScores derives instrument scores from currency macro scores.

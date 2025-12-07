@@ -1,164 +1,263 @@
 <template>
-   <div id="currency_compare">
-      <Navigation />
-      <div class="box m-6">
-        <div class="is-flex mb-4">
-          <h1 class="has-text-weight-medium">Select currency pair</h1>
-        </div>
-        <div class="is-flex">
-         <div class="select is-link mr-3">
-            <select v-model="currency1" @change="compareEconomicIndicators">
-              <option v-for="c in currencyList">{{ c }}</option>
-            </select>
+  <div class="container pt-4">
+    <div class="box">
+      <div class="is-flex is-align-items-center">
+        <div><span class="has-text-weight-bold has-text-white">MacroSentiments</span></div>
+        <div class="ml-6">
+          <div class="tabs">
+            <ul>
+              <li :class="{ 'is-active': activeTab === 'overview' }">
+                <a @click="activeTab = 'overview'">
+                  Overview
+                </a>
+              </li>
+              <li :class="{ 'is-active': activeTab === 'fx' }">
+                <a  @click="activeTab = 'fx'">
+                  FX Pairs
+                </a>
+              </li>
+              <li :class="{ 'is-active': activeTab === 'instruments' }">
+                <a @click="activeTab = 'instruments'">
+                  Indices & Metals
+                </a>
+              </li>
+            </ul>
           </div>
-          <div class="select is-link mr-3">
-            <select v-model="currency2" @change="compareEconomicIndicators">
-              <option v-for="c in currencyList">{{ c }}</option>
-            </select>
+        </div>
+      </div>
+      <div class="mt-6">
+        <!-- Overview tab -->
+        <div v-if="activeTab === 'overview'">
+          <h2 class="title is-5">Currency Overview</h2>
+
+          <!-- 🔥 Strongest / Weakest row -->
+          <div class="box mb-4">
+            <div class="columns">
+              <div class="column">
+                <h3 class="subtitle is-6 has-text-weight-semibold">Top Strongest</h3>
+                <div class="tags">
+                  <span
+                    v-for="item in strongestCurrencies"
+                    :key="`strong-${item.code}`"
+                    class="tag is-medium"
+                    :class="scoreTagClass(item.score.total_score)"
+                  >
+                    {{ item.code }} ({{ item.score.total_score.toFixed(2) }})
+                  </span>
+                </div>
+              </div>
+
+              <div class="column">
+                <h3 class="subtitle is-6 has-text-weight-semibold">Top Weakest</h3>
+                <div class="tags">
+                  <span
+                    v-for="item in weakestCurrencies"
+                    :key="`weak-${item.code}`"
+                    class="tag is-medium"
+                    :class="scoreTagClass(item.score.total_score)"
+                  >
+                    {{ item.code }} ({{ item.score.total_score.toFixed(2) }})
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- your existing currency grid can stay below this -->
+          <div class="columns is-multiline">
+            <div
+              class="column is-4"
+              v-for="(score, code) in macroScores"
+              :key="code"
+            >
+              <div class="box">
+                <div class="is-flex is-justify-content-space-between is-align-items-center mb-2">
+                  <span class="tag is-info is-light">{{ code }}</span>
+                  <span class="tag" :class="scoreTagClass(score.total_score)">
+                    {{ score.total_score.toFixed(2) }}
+                  </span>
+                </div>
+
+                <p class="is-size-7 has-text-grey">
+                  {{ score.explanation }}
+                </p>
+                       <!-- optional: quick view of key components -->
+                <div class="is-size-7">
+                  <p>
+                    <strong>GDP:</strong>
+                    {{ (score.components.gdp_growth ?? 0).toFixed(2) }}
+                    &nbsp;|&nbsp;
+                    <strong>Unemp:</strong>
+                    {{ (score.components.unemployment ?? 0).toFixed(2) }}
+                  </p>
+                  <p>
+                    <strong>Inflation:</strong>
+                    {{ (score.components.inflation ?? 0).toFixed(2) }}
+                    &nbsp;|&nbsp;
+                    <strong>Rates:</strong>
+                    {{ (score.components.interest_rate ?? 0).toFixed(2) }}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <table class="table mt-6 is-fullwidth">
-          <thead>
-            <tr>
-              <th>Indicator</th>
-              <th></th>
-              <th></th>
-              <th></th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="indicator in indicators">
-              <td>{{ indicator }}</td>
-              <td>{{ currency1Data[indicator] }}</td>
-              <td>{{ currency2Data[indicator] }}</td>
-              <td></td>
-              <td></td>
-            </tr>
-            <tr>
-              <td>Score</td>
-              <td>{{ currency1total }}</td>
-              <td>{{ currency2total }}</td>
-              <td></td>
-              <td></td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="is-flex mt-6">
-          <h1 class="has-text-info-dark">{{ bias }}</h1>
+        <!-- FX Pairs tab -->
+        <div v-if="activeTab === 'fx'">
+          <h2 class="title is-5">FX Pair Sentiment</h2>
+
+          <div class="columns is-align-items-flex-end">
+            <div class="column is-4">
+              <div class="field">
+                <label class="label">Base Currency</label>
+                <div class="control">
+                  <div class="select is-fullwidth">
+                    <select v-model="base" @change="onPairChange">
+                      <option v-for="(score, code) in macroScores" :key="code" :value="code">
+                        {{ code }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field">
+                <label class="label">Quote Currency</label>
+                <div class="control">
+                  <div class="select is-fullwidth">
+                    <select v-model="quote" @change="onPairChange">
+                      <option v-for="(score, code) in macroScores" :key="code" :value="code">
+                        {{ code }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="column is-8">
+              <div class="box">
+                <h3 class="title is-5">{{ pair?.base }}/{{ pair?.quote }}</h3>
+                <p><strong>Pair Score:</strong> {{ pair?.pair_score }}</p>
+                <p class="mt-2 is-size-7">{{ pair?.explanation }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Indices & Metals tab -->
+        <div v-if="activeTab === 'instruments'">
+          <h2 class="title is-4">Indices & Metals</h2>
+
+          <div class="columns is-multiline">
+            <div 
+              class="column is-4"
+              v-for="inst in instruments" 
+              :key="inst.symbol"
+            >
+              <div class="box indice_metal_box">
+                <h3 class="title is-5">{{ inst.symbol }} ({{ inst.asset_type }})</h3>
+                <p><strong>Score:</strong> {{ inst.total_score }}</p>
+                <p class="mt-2 is-size-7">{{ inst.explanation }}</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-   </div>
+
+    </div>
+  </div>
 </template>
 
 
 <script setup lang="ts">
-import { computed, reactive, ref, toRefs } from 'vue';
-import Navigation from './Navigation.vue';
-import currencyData from './currency_compare.json'
+// src/App.vue <script setup>
+import { ref, computed, onMounted } from "vue";
+import {
+  fetchMacroScores,
+  fetchPairSentiment,
+  fetchInstrumentScores,
+  type ScoreBreakdown,
+  type PairSentiment,
+  type InstrumentScore,
+} from "../api/macro";
 
-interface CurrencyData {
-  [key: string] : number | string
+const macroScores = ref<Record<string, ScoreBreakdown>>({});
+const instruments = ref<Record<string, InstrumentScore>>({});
+const pair = ref<PairSentiment | null>(null);
+const loading = ref(true);
+const error = ref<string | null>(null);
+const activeTab = ref<"overview" | "fx" | "instruments">("overview");
+
+const base = ref("GBP");
+const quote = ref("USD");
+
+// 🔹 convert macroScores object → sorted array
+const sortedCurrencies = computed(() => {
+  return Object.entries(macroScores.value)
+    .map(([code, score]) => ({ code, score }))
+    .sort((a, b) => b.score.total_score - a.score.total_score);
+});
+
+// 🔹 top 3 strongest
+const strongestCurrencies = computed(() => sortedCurrencies.value.slice(0, 3));
+
+// 🔹 top 3 weakest
+const weakestCurrencies = computed(() =>
+  [...sortedCurrencies.value].reverse().slice(0, 3)
+);
+
+// 🔹 color helper for tags
+function scoreTagClass(score: number) {
+  if (score > 0.25) return "is-success";
+  if (score < -0.3) return "is-danger";
+  return "is-warning";
 }
-const currencyList = ref<string[]>(currencyData.map(e => { return e.Country}));
 
-let data = reactive({
-  currency1: 'USA' as string,
-  currency2: 'EUR' as string,
-  bias: "" as string,
-  currency1total: 0 as number,
-  currency2total: 0 as number,
-  
-})
+// existing load logic
+async function loadAll() {
+  try {
+    loading.value = true;
+    error.value = null;
 
-// COMPUTED
+    const [scores, inst, pairData] = await Promise.all([
+      fetchMacroScores(),
+      fetchInstrumentScores(),
+      fetchPairSentiment(base.value, quote.value),
+    ]);
 
-let currency1Data = computed((): CurrencyData => {
-
-  return currencyData.filter( e => { return e.Country === currency1.value})[0]
-})
-
-let currency2Data = computed((): CurrencyData => {
-
-return currencyData.filter( e => { return e.Country === currency2.value})[0]
-})
-
-
-let indicators = computed((): string[] => {
-
-  return Object.keys(currencyData[0])
-})
-
-
-// METHODS
-
-let compareEconomicIndicators =  () => {
-  const indicators = [
-    { key: 'GDP Growth Rate', higherIsBetter: true },
-    { key: 'Unemployment Rate', higherIsBetter: false },
-    { key: 'Inflation Rate', higherIsBetter: true },
-    { key: 'Interest Rate', higherIsBetter: true },
-    { key: 'Business Confidence', higherIsBetter: true },
-    { key: 'Manufacturing PMI', higherIsBetter: true },
-    { key: 'Consumer Confidence', higherIsBetter: true },
-    { key: 'Retail Sales MoM', higherIsBetter: true },
-    { key: 'GDP Annual Growth Rate', higherIsBetter: true },
-    { key: 'Current Account', higherIsBetter: true }
-  ]
-
-  let currency1Score = 0;
-  let currency2Score = 0;
-
-    // Compare each indicator
-    indicators.forEach(indicator => {
-    const key = indicator.key as keyof CurrencyData;
-    const currency1Value = currency1Data.value[key] as number;
-    const currency2Value = currency2Data.value[key] as number;
-
-    if (currency1Value !== undefined && currency2Value !== undefined) {
-      if (currency1Value > currency2Value && indicator.higherIsBetter) {
-        currency1Score++;
-      } else if (currency1Value < currency2Value && !indicator.higherIsBetter) {
-        currency1Score++;
-      }  else {
-        currency2Score++;
-      }
-    }
-  });
-  currency1total.value = currency1Score
-  currency2total.value = currency2Score
-
-  // Determine the result
-  if (currency1Score > currency2Score) {
-    bias.value = `${currency1Data.value.Country} is more bullish compared to ${currency2Data.value.Country}.`;
-  } else if (currency1Score < currency2Score) {
-    bias.value = `${currency2Data.value.Country} is more bullish compared to ${currency1Data.value.Country}.`;
-  } else {
-    bias.value = `${currency1Data.value.Country} and ${currency2Data.value.Country} are neutral relative to each other.`;
+    macroScores.value = scores;
+    instruments.value = inst;
+    pair.value = pairData;
+  } catch (e: any) {
+    error.value = e?.message ?? String(e);
+  } finally {
+    loading.value = false;
   }
 }
 
+function onPairChange() {
+  fetchPairSentiment(base.value, quote.value)
+    .then((res: any) => (pair.value = res))
+    .catch((e: any) => (error.value = e?.message ?? String(e)));
+}
 
-let {currency1, currency2, bias, currency1total, currency2total} = toRefs(data)
+onMounted(loadAll);
+
 </script>
 
 <style lang="scss" scoped>
 @import "../assets/scss/main";
-
 .box {
-  border-radius: 10px !important;
-  color: $primary-color !important;
-  background-color: #F7F8FF;
-  box-shadow: rgba(50, 50, 93, 0.25) 0px 13px 27px -5px, rgba(0, 0, 0, 0.3) 0px 8px 16px -8px;
+  background-color: #0F172A ;
 }
 
-.table {
-  background-color: #F7F8FF !important;
-  th, td {
-    color: $primary-color !important;
-  }
-  
+.container {
+  min-height: 100vh;
 }
 
+.indice_metal_box {
+  height: 15rem;
+  color: #f1f1e6;
+  border-color: #538ff8 !important;
+}
 </style>

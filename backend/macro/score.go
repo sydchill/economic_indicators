@@ -22,9 +22,12 @@ func ScoreSnapshot(m MacroSnapshot) ScoreBreakdown {
 	components["gdp_growth"] = clamp(m.GDPAnnualGrowthRate/4.0, -1, 1)       // -4%→-1, 0→0, 4%→1
 	components["unemployment"] = clamp((10.0-m.UnemploymentRate)/6.0, -1, 1) // 4%→~1, 10%→0, >10%→neg
 	components["inflation"] = scoreInflation(m.InflationRate)
-	components["interest_rate"] = clamp(m.InterestRate/10.0, -1, 1)          // up to 10% considered max positive
-	components["current_account"] = clamp(m.CurrentAccount/100_000.0, -1, 1) // scaled down
-	components["balance_of_trade"] = clamp(m.BalanceOfTrade/50_000.0, -1, 1)
+	components["interest_rate"] = clamp(m.InterestRate/10.0, -1, 1) // up to 10% considered max positive
+	// Temporarily disabled: values are in local currency units (not comparable across countries)
+	// Once macro.json uses % of GDP, we can re-enable with proper scaling.
+	//
+	// components["current_account"] = clamp(m.CurrentAccount/5.0, -1, 1)
+	// components["balance_of_trade"] = clamp(m.BalanceOfTrade/5.0, -1, 1)
 
 	components["business_confidence"] = clamp(m.BusinessConfidence/100.0, -1, 1)
 	components["manufacturing_pmi"] = scorePMI(m.ManufacturingPMI)
