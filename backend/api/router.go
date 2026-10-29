@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	"github.com/uptrace/bun"
 )
 
@@ -36,20 +35,5 @@ func cors(next http.Handler) http.Handler {
 
 // Router router
 func (a *API) Router() http.Handler {
-	r := chi.NewRouter()
-
-	r.Use(middleware.RequestID)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(cors)
-
-	r.Get("/api/v1/health", a.HandleHealth)
-	r.Get("/api/v1/currencies", a.HandleListCurrencies)
-
-	// new ones:
-	r.Get("/api/v1/macro/scores", a.HandleMacroScores)
-	r.Get("/api/v1/macro/pair", a.HandleMacroPairSentiment)
-	r.Get("/api/v1/instruments/scores", a.HandleInstrumentScores)
-
-	return r
+	return cors(chi.NewRouter())
 }

@@ -1,39 +1,26 @@
 package config
 
 import (
-	"log"
+	"fmt"
 	"os"
-
-	"github.com/joho/godotenv"
 )
 
 // Config database setup
 type Config struct {
-	Addr  string
-	DBDSN string
+	DatabaseURL string
+	HTTPAddr    string
 }
 
-// Load load env info
-func Load() *Config {
-	// load .env in dev (ignore error if missing)
-	_ = godotenv.Load()
-
-	addr := getEnv("ADDR", ":8080")
-
-	dsn := os.Getenv("DB_DSN")
+func Load() (*Config, error) {
+	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
-		log.Fatal("DB_DSN is required, e.g. user:pass@tcp(localhost:3306)/trading?charset=utf8mb4&parseTime=True&loc=UTC")
+		return nil, fmt.Errorf("DATABASE_URL not set")
 	}
-
-	return &Config{
-		Addr:  addr,
-		DBDSN: dsn,
+	addr := os.Getenv("HTTP_ADDR")
+	if addr == "" {
+		addr = ":8080"
 	}
+	return &Config{DatabaseURL: dsn, HTTPAddr: addr}, nil
 }
 
-func getEnv(key, def string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return def
-}
+
