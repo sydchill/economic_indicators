@@ -48,6 +48,20 @@ func main() {
 }
 
 func healthHandler(db *bun.DB) http.HandlerFunc {
+	type tableRef struct {
+		Schema string `bun:"table_schema"`
+		Name   string `bun:"table_name"`
+	}
+
+	requiredTables := []string{
+		"auth.users",
+		"auth.credentials",
+		"auth.oauth_accounts",
+		"auth.sessions",
+		"auth.password_reset_tokens",
+		"users.profiles",
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 		defer cancel()
@@ -57,21 +71,41 @@ func healthHandler(db *bun.DB) http.HandlerFunc {
 			return
 		}
 
-		var count int
+		var refs []tableRef
 		err := db.NewSelect().
 			TableExpr("information_schema.tables").
-			ColumnExpr("count(*)").
-			Where("table_name = ?", "users").
-			Scan(ctx, &count)
+			ColumnExpr("table_schema, table_name").
+			Where("table_schema IN ('auth', 'users')").
+			Where("table_type = 'BASE TABLE'").
+			Scan(ctx, &refs)
 		if err != nil {
 			writeJSON(w, 503, map[string]any{"status": "error", "schema": err.Error()})
+			return
+		}
+
+		present := make(map[string]bool, len(refs))
+		for _, t := range refs {
+			present[t.Schema+"."+t.Name] = true
+		}
+		missing := make([]string, 0)
+		for _, name := range requiredTables {
+			if !present[name] {
+				missing = append(missing, name)
+			}
+		}
+
+		if len(missing) > 0 {
+			writeJSON(w, 503, map[string]any{
+				"status":         "error",
+				"missing_tables": missing,
+			})
 			return
 		}
 
 		writeJSON(w, 200, map[string]any{
 			"status":   "ok",
 			"database": "ok",
-			"tables":   map[string]bool{"users": count > 0},
+			"tables":   len(requiredTables),
 		})
 	}
 }
