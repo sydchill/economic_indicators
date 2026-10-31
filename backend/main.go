@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -11,9 +10,10 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/uptrace/bun"
 
-	"backend/config"
+	"github.com/sydchill/economic_indicators/api/handlers/auth"
+	"github.com/sydchill/economic_indicators/config"
 
-	"backend/db"
+	"github.com/sydchill/economic_indicators/db"
 )
 
 func main() {
@@ -38,8 +38,12 @@ func main() {
 	}
 	log.Println("database connected and migrated")
 
+	authSvc := auth.NewService(bunDB)
+	authHandler := auth.NewHandler(authSvc)
+
 	r := chi.NewRouter()
 	r.Get("/health", healthHandler(bunDB))
+	r.Mount("/api/auth", authHandler.Routes())
 
 	log.Printf("listening on %s", cfg.HTTPAddr)
 	if err := http.ListenAndServe(cfg.HTTPAddr, r); err != nil {
@@ -67,7 +71,7 @@ func healthHandler(db *bun.DB) http.HandlerFunc {
 		defer cancel()
 
 		if err := db.PingContext(ctx); err != nil {
-			writeJSON(w, 503, map[string]any{"status": "error", "database": err.Error()})
+			auth.WriteJSON(w, 503, map[string]any{"status": "error", "database": err.Error()})
 			return
 		}
 
@@ -79,7 +83,7 @@ func healthHandler(db *bun.DB) http.HandlerFunc {
 			Where("table_type = 'BASE TABLE'").
 			Scan(ctx, &refs)
 		if err != nil {
-			writeJSON(w, 503, map[string]any{"status": "error", "schema": err.Error()})
+			auth.WriteJSON(w, 503, map[string]any{"status": "error", "schema": err.Error()})
 			return
 		}
 
@@ -95,23 +99,17 @@ func healthHandler(db *bun.DB) http.HandlerFunc {
 		}
 
 		if len(missing) > 0 {
-			writeJSON(w, 503, map[string]any{
+			auth.WriteJSON(w, 503, map[string]any{
 				"status":         "error",
 				"missing_tables": missing,
 			})
 			return
 		}
 
-		writeJSON(w, 200, map[string]any{
+		auth.WriteJSON(w, 200, map[string]any{
 			"status":   "ok",
 			"database": "ok",
 			"tables":   len(requiredTables),
 		})
 	}
-}
-
-func writeJSON(w http.ResponseWriter, status int, body any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(body)
 }
