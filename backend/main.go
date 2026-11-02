@@ -4,51 +4,68 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
 	"github.com/uptrace/bun"
 
-	"github.com/sydchill/economic_indicators/api/handlers/auth"
-	"github.com/sydchill/economic_indicators/config"
+	"github.com/sydchill/economic_indicators/backend/api/auth"
+	"github.com/sydchill/economic_indicators/shared/config"
 
-	"github.com/sydchill/economic_indicators/db"
+	"github.com/sydchill/economic_indicators/shared/db"
 )
 
 func main() {
 	_ = godotenv.Load()
 
-	cfg, err := config.Load()
+	cfg, err := config.LoadServer()
 	if err != nil {
 		log.Fatalf("config: %v", err)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
 	bunDB, err := db.New(ctx, cfg.DatabaseURL)
+	cancel()
 	if err != nil {
 		log.Fatalf("db: %v", err)
 	}
 	defer bunDB.Close()
 
-	if err := db.Migrate(bunDB); err != nil {
-		log.Fatalf("migrate: %v", err)
-	}
-	log.Println("database connected and migrated")
+	// Migrations deferred to cmd/migrate in the next component.
 
 	authSvc := auth.NewService(bunDB, cfg.GoogleClientID)
-	authHandler := auth.NewHandler(authSvc)
+	authH := auth.NewHandler(authSvc)
 
 	r := chi.NewRouter()
 	r.Get("/health", healthHandler(bunDB))
-	r.Mount("/api/auth", authHandler.Routes())
+	r.Mount("/api/auth", authH.Routes())
 
-	log.Printf("listening on %s", cfg.HTTPAddr)
-	if err := http.ListenAndServe(cfg.HTTPAddr, r); err != nil {
-		log.Fatal(err)
+	srv := &http.Server{
+		Addr:              cfg.HTTPAddr,
+		Handler:           r,
+		ReadHeaderTimeout: 5 * time.Second,
 	}
+
+	go func() {
+		log.Printf("listening on %s", cfg.HTTPAddr)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatal(err)
+		}
+	}()
+
+	// Graceful shutdown
+	shutdown, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	<-shutdown.Done()
+
+	shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancelShutdown()
+	_ = srv.Shutdown(shutdownCtx)
+	log.Println("server stopped")
 }
 
 func healthHandler(db *bun.DB) http.HandlerFunc {

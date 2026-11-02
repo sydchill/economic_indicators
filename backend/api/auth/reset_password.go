@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	userpkg "github.com/sydchill/economic_indicators/models"
+	userpkg "github.com/sydchill/economic_indicators/shared/models"
 	"github.com/uptrace/bun"
 )
 

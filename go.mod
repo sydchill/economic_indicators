@@ -1,12 +1,10 @@
 module github.com/sydchill/economic_indicators
 
-go 1.26.0
+go 1.23
 
 // go.mod additions
 require (
 	github.com/go-chi/chi/v5 v5.5.0
-	github.com/go-chi/httprate v0.9.0
-	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/golang-migrate/migrate/v4 v4.20.1
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.11.0
@@ -14,7 +12,7 @@ require (
 	github.com/uptrace/bun/dialect/pgdialect v1.3.0
 	github.com/uptrace/bun/driver/pgdriver v1.3.0
 	golang.org/x/crypto v0.58.0 // argon2
-	golang.org/x/oauth2 v0.37.0
+	golang.org/x/oauth2 v0.37.0 // indirect
 	google.golang.org/api v0.310.0 // idtoken verification
 )
 
@@ -32,6 +30,8 @@ require (
 	golang.org/x/sys v0.49.0 // indirect
 	mellium.im/sasl v0.3.2 // indirect
 )
+
+require golang.org/x/time v0.16.0
 
 require (
 	cloud.google.com/go/auth v0.24.1-0.20261001053825-dbc26066f70a // indirect
