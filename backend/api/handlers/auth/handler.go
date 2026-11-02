@@ -22,6 +22,9 @@ func (h *Handler) Routes() chi.Router {
 	r.Post("/register", h.Register)
 	r.Post("/login", h.Login)
 	r.Post("/logout", h.Logout)
+	r.Post("/forgot-password", h.ForgotPassword)
+	r.Post("/reset-password", h.ResetPassword)
+	r.Post("/google", h.GoogleLogin)
 	r.Get("/me", h.Me)
 	return r
 }
@@ -169,6 +172,55 @@ func (h *Handler) GoogleLogin(w http.ResponseWriter, r *http.Request) {
 			"email_verified": usr.EmailVerified,
 		},
 	})
+}
+
+// POST /api/auth/forgot-password
+func (h *Handler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Email string `json:"email"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		// Even a malformed body gets 204 — never signal anything.
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	// The service never returns an error for "unknown email".
+	_ = h.svc.RequestPasswordReset(r.Context(), req.Email)
+
+	// Always 204, regardless of whether the email exists[reference:6].
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// POST /api/auth/reset-password
+func (h *Handler) ResetPassword(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Token    string `json:"token"`
+		Password string `json:"password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid JSON body")
+		return
+	}
+	if req.Token == "" {
+		writeError(w, http.StatusBadRequest, "token is required")
+		return
+	}
+
+	err := h.svc.ResetPassword(r.Context(), req.Token, req.Password)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrWeakPassword):
+			writeError(w, http.StatusBadRequest, err.Error())
+		case errors.Is(err, ErrInvalidResetToken):
+			writeError(w, http.StatusUnauthorized, "reset token is invalid, expired, or already used")
+		default:
+			writeError(w, http.StatusInternalServerError, "password reset failed")
+		}
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // ---------------------------------------------------------------

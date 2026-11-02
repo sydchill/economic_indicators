@@ -11,4 +11,5 @@ var (
 	ErrSessionNotFound       = errors.New("session not found or expired")
 	ErrGoogleTokenInvalid    = errors.New("google id token is invalid")
 	ErrGoogleEmailUnverified = errors.New("google account email is not verified")
+	ErrInvalidResetToken     = errors.New("reset token is invalid, expired, or already used")
 )
