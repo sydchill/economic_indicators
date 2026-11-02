@@ -38,7 +38,7 @@ func main() {
 	}
 	log.Println("database connected and migrated")
 
-	authSvc := auth.NewService(bunDB)
+	authSvc := auth.NewService(bunDB, cfg.GoogleClientID)
 	authHandler := auth.NewHandler(authSvc)
 
 	r := chi.NewRouter()

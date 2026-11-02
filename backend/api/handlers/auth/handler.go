@@ -132,6 +132,45 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 	WriteJSON(w, http.StatusOK, body)
 }
 
+func (h *Handler) GoogleLogin(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		IDToken string `json:"id_token"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid JSON body")
+		return
+	}
+	if req.IDToken == "" {
+		writeError(w, http.StatusBadRequest, "id_token is required")
+		return
+	}
+
+	usr, session, raw, err := h.svc.LoginWithGoogle(r.Context(), req.IDToken)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrGoogleTokenInvalid):
+			writeError(w, http.StatusUnauthorized, "google authentication failed")
+		case errors.Is(err, ErrGoogleEmailUnverified):
+			writeError(w, http.StatusForbidden, "google account email is not verified")
+		case errors.Is(err, ErrAccountInactive):
+			writeError(w, http.StatusForbidden, "account is not active")
+		default:
+			writeError(w, http.StatusInternalServerError, "google login failed")
+		}
+		return
+	}
+
+	WriteJSON(w, http.StatusOK, map[string]any{
+		"session_token": raw,
+		"expires_at":    session.ExpiresAt,
+		"user": map[string]any{
+			"id":             usr.ID,
+			"email":          usr.Email,
+			"email_verified": usr.EmailVerified,
+		},
+	})
+}
+
 // ---------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------

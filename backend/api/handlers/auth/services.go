@@ -14,11 +14,12 @@ import (
 )
 
 type Service struct {
-	db *bun.DB
+	db             *bun.DB
+	googleClientID string
 }
 
-func NewService(db *bun.DB) *Service {
-	return &Service{db: db}
+func NewService(db *bun.DB, googleClientID string) *Service {
+	return &Service{db: db, googleClientID: googleClientID}
 }
 
 type SessionContext struct {
@@ -177,6 +178,125 @@ func (s *Service) ResolveSession(ctx context.Context, rawToken string) (*Session
 	}
 
 	return &SessionContext{User: usr, Profile: profile}, nil
+}
+
+func (s *Service) LoginWithGoogle(ctx context.Context, rawIDToken string) (*userpkg.User, *userpkg.Session, string, error) {
+	claims, err := verifyGoogleIDToken(ctx, rawIDToken, s.googleClientID)
+	if err != nil {
+		return nil, nil, "", err
+	}
+
+	var usr *userpkg.User
+
+	err = s.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+		// 1. Try to resolve via an existing OAuth link.
+		oa := new(userpkg.OAuthAccount)
+		err := tx.NewSelect().Model(oa).
+			Where("oa.provider = ?", "google").
+			Where("oa.provider_user_id = ?", claims.Subject).
+			Scan(ctx)
+		if err == nil {
+			u := new(userpkg.User)
+			if err := tx.NewSelect().Model(u).
+				Where("u.id = ?", oa.UserID).
+				Scan(ctx); err != nil {
+				return err
+			}
+			usr = u
+			return nil
+		}
+
+		// 2. Not linked yet. Look for an existing account with the same email.
+		u := new(userpkg.User)
+		err = tx.NewSelect().Model(u).
+			Where("u.email = ?", claims.Email).
+			Scan(ctx)
+		if err == nil {
+			// Link Google to the existing password account.
+			link := &userpkg.OAuthAccount{
+				UserID:         u.ID,
+				Provider:       "google",
+				ProviderUserID: claims.Subject,
+			}
+			if _, err := tx.NewInsert().Model(link).Exec(ctx); err != nil {
+				return err
+			}
+			// Backfill email_verified if the account was created but never verified.
+			if !u.EmailVerified {
+				if _, err := tx.NewUpdate().Model((*userpkg.User)(nil)).
+					Set("email_verified = TRUE").
+					Set("updated_at = NOW()").
+					Where("id = ?", u.ID).
+					Exec(ctx); err != nil {
+					return err
+				}
+				u.EmailVerified = true
+			}
+			usr = u
+			return nil
+		}
+
+		// 3. Brand new user. Create user + profile + oauth link atomically.
+		u = &userpkg.User{
+			Email:         claims.Email,
+			EmailVerified: true,
+			Status:        "active",
+		}
+		if _, err := tx.NewInsert().Model(u).
+			Returning("id, created_at, updated_at").
+			Exec(ctx); err != nil {
+			return err
+		}
+
+		profile := &userpkg.Profile{UserID: u.ID}
+		if claims.Name != "" {
+			name := claims.Name
+			profile.DisplayName = &name
+		}
+		if claims.Picture != "" {
+			pic := claims.Picture
+			profile.AvatarURL = &pic
+		}
+		if _, err := tx.NewInsert().Model(profile).Exec(ctx); err != nil {
+			return err
+		}
+
+		link := &userpkg.OAuthAccount{
+			UserID:         u.ID,
+			Provider:       "google",
+			ProviderUserID: claims.Subject,
+		}
+		if _, err := tx.NewInsert().Model(link).Exec(ctx); err != nil {
+			return err
+		}
+		usr = u
+		return nil
+	})
+	if err != nil {
+		return nil, nil, "", err
+	}
+
+	if usr.Status != "active" {
+		return nil, nil, "", ErrAccountInactive
+	}
+
+	raw, hash, err := GenerateSessionToken()
+	if err != nil {
+		return nil, nil, "", err
+	}
+
+	session := &userpkg.Session{
+		UserID:    usr.ID,
+		TokenHash: hash,
+		ExpiresAt: time.Now().Add(sessionTTL),
+	}
+	if _, err := s.db.NewInsert().Model(session).
+		Returning("id, created_at").
+		Exec(ctx); err != nil {
+		return nil, nil, "", err
+	}
+
+	return usr, session, raw, nil
 }
 
 // ---------------------------------------------------------------

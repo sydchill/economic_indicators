@@ -7,8 +7,9 @@ import (
 
 // Config database setup
 type Config struct {
-	DatabaseURL string
-	HTTPAddr    string
+	DatabaseURL    string
+	HTTPAddr       string
+	GoogleClientID string
 }
 
 func Load() (*Config, error) {
@@ -20,7 +21,9 @@ func Load() (*Config, error) {
 	if addr == "" {
 		addr = ":8080"
 	}
-	return &Config{DatabaseURL: dsn, HTTPAddr: addr}, nil
+	googleID := os.Getenv("GOOGLE_CLIENT_ID")
+	if googleID == "" {
+		return nil, fmt.Errorf("GOOGLE_CLIENT_ID not set")
+	}
+	return &Config{DatabaseURL: dsn, HTTPAddr: addr, GoogleClientID: googleID}, nil
 }
-
-
