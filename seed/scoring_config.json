@@ -1,0 +1,140 @@
+{
+  "version": 1,
+  "templates": {
+    "currency": {
+      "category_weights": {
+        "rates":     { "weight": 0.30, "params": { "maturity": 2,  "direction": 1 } },
+        "inflation": { "weight": 0.20 },
+        "jobs":      { "weight": 0.20 },
+        "growth":    { "weight": 0.15 },
+        "cot":       { "weight": 0.15, "params": { "direction": 1 } }
+      },
+      "indicators": {
+        "growth": [
+          { "suffix": "GDP_QOQ",          "direction":  1, "weight": 0.30 },
+          { "suffix": "MFG_PMI",          "direction":  1, "weight": 0.25 },
+          { "suffix": "SVC_PMI",          "direction":  1, "weight": 0.25 },
+          { "suffix": "RETAIL_SALES_MOM", "direction":  1, "weight": 0.10 },
+          { "suffix": "CONSUMER_CONF",    "direction":  1, "weight": 0.10 }
+        ],
+        "inflation": [
+          { "suffix": "CPI_YOY", "direction":  1, "weight": 0.50 },
+          { "suffix": "PCE_YOY", "direction":  1, "weight": 0.30 },
+          { "suffix": "PPI_YOY", "direction":  1, "weight": 0.20 }
+        ],
+        "jobs": [
+          { "suffix": "NFP",            "direction":  1, "weight": 0.30 },
+          { "suffix": "UNEMPLOYMENT",   "direction": -1, "weight": 0.25 },
+          { "suffix": "JOBLESS_CLAIMS", "direction": -1, "weight": 0.20 },
+          { "suffix": "ADP",            "direction":  1, "weight": 0.15 },
+          { "suffix": "JOLTS",          "direction":  1, "weight": 0.10 }
+        ]
+      }
+    },
+    "metal_usd": {
+      "category_weights": {
+        "rates":     { "weight": 0.40, "params": { "maturity": 10, "direction": -1 } },
+        "inflation": { "weight": 0.25 },
+        "cot":       { "weight": 0.20, "params": { "direction": 1 } },
+        "growth":    { "weight": 0.10 },
+        "jobs":      { "weight": 0.05 }
+      },
+      "indicators": {
+        "growth": [
+          { "suffix": "GDP_QOQ",          "direction": 1, "weight": 0.30 },
+          { "suffix": "MFG_PMI",          "direction": 1, "weight": 0.30 },
+          { "suffix": "SVC_PMI",          "direction": 1, "weight": 0.10 },
+          { "suffix": "RETAIL_SALES_MOM", "direction": 1, "weight": 0.20 },
+          { "suffix": "CONSUMER_CONF",    "direction": 1, "weight": 0.10 }
+        ],
+        "inflation": [
+          { "suffix": "CPI_YOY", "direction": 1, "weight": 0.40 },
+          { "suffix": "PCE_YOY", "direction": 1, "weight": 0.40 },
+          { "suffix": "PPI_YOY", "direction": 1, "weight": 0.20 }
+        ],
+        "jobs": [
+          { "suffix": "NFP",            "direction": -1, "weight": 0.30 },
+          { "suffix": "UNEMPLOYMENT",   "direction":  1, "weight": 0.25 },
+          { "suffix": "JOBLESS_CLAIMS", "direction":  1, "weight": 0.20 },
+          { "suffix": "ADP",            "direction": -1, "weight": 0.15 },
+          { "suffix": "JOLTS",          "direction": -1, "weight": 0.10 }
+        ]
+      }
+    },
+    "index_usd": {
+      "category_weights": {
+        "rates":     { "weight": 0.30, "params": { "maturity": 10, "direction": -1 } },
+        "growth":    { "weight": 0.25 },
+        "inflation": { "weight": 0.20 },
+        "jobs":      { "weight": 0.15 },
+        "cot":       { "weight": 0.10, "params": { "direction": 1 } }
+      },
+      "indicators": {
+        "growth": [
+          { "suffix": "GDP_QOQ",          "direction": 1, "weight": 0.25 },
+          { "suffix": "MFG_PMI",          "direction": 1, "weight": 0.10 },
+          { "suffix": "SVC_PMI",          "direction": 1, "weight": 0.30 },
+          { "suffix": "RETAIL_SALES_MOM", "direction": 1, "weight": 0.20 },
+          { "suffix": "CONSUMER_CONF",    "direction": 1, "weight": 0.15 }
+        ],
+        "inflation": [
+          { "suffix": "CPI_YOY", "direction": -1, "weight": 0.40 },
+          { "suffix": "PCE_YOY", "direction": -1, "weight": 0.40 },
+          { "suffix": "PPI_YOY", "direction": -1, "weight": 0.20 }
+        ],
+        "jobs": [
+          { "suffix": "NFP",            "direction": -1, "weight": 0.30 },
+          { "suffix": "UNEMPLOYMENT",   "direction":  1, "weight": 0.25 },
+          { "suffix": "JOBLESS_CLAIMS", "direction":  1, "weight": 0.20 },
+          { "suffix": "ADP",            "direction": -1, "weight": 0.15 },
+          { "suffix": "JOLTS",          "direction": -1, "weight": 0.10 }
+        ]
+      }
+    },
+    "index_jpy": {
+      "category_weights": {
+        "rates":     { "weight": 0.30, "params": { "maturity": 10, "direction": -1 } },
+        "inflation": { "weight": 0.25 },
+        "growth":    { "weight": 0.20 },
+        "jobs":      { "weight": 0.15 },
+        "cot":       { "weight": 0.10, "params": { "direction": 1 } }
+      },
+      "indicators": {
+        "growth": [
+          { "suffix": "GDP_QOQ",          "direction": 1, "weight": 0.25 },
+          { "suffix": "MFG_PMI",          "direction": 1, "weight": 0.10 },
+          { "suffix": "SVC_PMI",          "direction": 1, "weight": 0.30 },
+          { "suffix": "RETAIL_SALES_MOM", "direction": 1, "weight": 0.20 },
+          { "suffix": "CONSUMER_CONF",    "direction": 1, "weight": 0.15 }
+        ],
+        "inflation": [
+          { "suffix": "CPI_YOY", "direction": -1, "weight": 0.50 },
+          { "suffix": "PCE_YOY", "direction": -1, "weight": 0.30 },
+          { "suffix": "PPI_YOY", "direction": -1, "weight": 0.20 }
+        ],
+        "jobs": [
+          { "suffix": "NFP",            "direction": -1, "weight": 0.30 },
+          { "suffix": "UNEMPLOYMENT",   "direction":  1, "weight": 0.25 },
+          { "suffix": "JOBLESS_CLAIMS", "direction":  1, "weight": 0.20 },
+          { "suffix": "ADP",            "direction": -1, "weight": 0.15 },
+          { "suffix": "JOLTS",          "direction": -1, "weight": 0.10 }
+        ]
+      }
+    }
+  },
+  "assets": {
+    "USD":    { "template": "currency",  "currency": "USD" },
+    "EUR":    { "template": "currency",  "currency": "EUR" },
+    "GBP":    { "template": "currency",  "currency": "GBP" },
+    "JPY":    { "template": "currency",  "currency": "JPY" },
+    "AUD":    { "template": "currency",  "currency": "AUD" },
+    "NZD":    { "template": "currency",  "currency": "NZD" },
+    "CAD":    { "template": "currency",  "currency": "CAD" },
+    "CHF":    { "template": "currency",  "currency": "CHF" },
+    "XAU":    { "template": "metal_usd", "currency": "USD" },
+    "XAG":    { "template": "metal_usd", "currency": "USD" },
+    "NAS100": { "template": "index_usd", "currency": "USD" },
+    "SPX500": { "template": "index_usd", "currency": "USD" },
+    "JP225":  { "template": "index_jpy", "currency": "JPY" }
+  }
+}

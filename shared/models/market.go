@@ -109,7 +109,7 @@ type AssetCategoryWeight struct {
 	AssetID  string          `bun:"asset_id,pk" json:"asset_id"`
 	Category string          `bun:"category,pk" json:"category"`
 	Weight   float64         `bun:"weight,notnull" json:"weight"`
-	Params   json.RawMessage `bun:"params,type:jsonb,default:'{}'::jsonb" json:"params,omitempty"`
+	Params   json.RawMessage `bun:"params,type:jsonb" json:"params,omitempty"`
 }
 
 type AssetIndicatorConfig struct {
