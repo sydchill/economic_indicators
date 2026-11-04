@@ -78,18 +78,6 @@ func (w *Worker) upsertEvent(ctx context.Context, ev BiquoteEvent) (upsertOutcom
 		return 0, errIncompleteEvent
 	}
 
-	// Guard: skip events for currencies we do not track.
-	exists, err := w.db.NewSelect().
-		Model((*models.Currency)(nil)).
-		Where("c.code = ?", ev.Currency).
-		Exists(ctx)
-	if err != nil {
-		return 0, err
-	}
-	if !exists {
-		return 0, errUnknownCurrency
-	}
-
 	ind := &models.EconomicIndicator{
 		Code:         indicatorCode(ev.Currency, ev.Name),
 		Name:         ev.Name,
