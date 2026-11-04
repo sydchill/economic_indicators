@@ -1,4 +1,4 @@
-package seed
+package ingest
 
 import "encoding/json"
 

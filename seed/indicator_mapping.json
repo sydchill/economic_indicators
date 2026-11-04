@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "mappings": [
+    { "match": "(?i)core\\s*cpi.*yoy",          "suffix": "CPI_YOY" },
+    { "match": "(?i)cpi.*yoy",                  "suffix": "CPI_YOY" },
+    { "match": "(?i)core\\s*ppi.*yoy",          "suffix": "PPI_YOY" },
+    { "match": "(?i)ppi.*yoy",                  "suffix": "PPI_YOY" },
+    { "match": "(?i)core\\s*pce.*yoy",          "suffix": "PCE_YOY" },
+    { "match": "(?i)pce.*yoy",                  "suffix": "PCE_YOY" },
+    { "match": "(?i)non[-\\s]*farm\\s*payroll", "suffix": "NFP" },
+    { "match": "(?i)unemployment\\s*rate",      "suffix": "UNEMPLOYMENT" },
+    { "match": "(?i)initial\\s*jobless",        "suffix": "JOBLESS_CLAIMS" },
+    { "match": "(?i)jobless\\s*claims",         "suffix": "JOBLESS_CLAIMS" },
+    { "match": "(?i)adp.*employment",           "suffix": "ADP" },
+    { "match": "(?i)jolts.*openings",           "suffix": "JOLTS" },
+    { "match": "(?i)gdp.*qoq",                  "suffix": "GDP_QOQ" },
+    { "match": "(?i)manufacturing\\s*pmi",      "suffix": "MFG_PMI" },
+    { "match": "(?i)services\\s*pmi",           "suffix": "SVC_PMI" },
+    { "match": "(?i)retail\\s*sales.*mom",      "suffix": "RETAIL_SALES_MOM" },
+    { "match": "(?i)consumer\\s*confidence",     "suffix": "CONSUMER_CONF" }
+  ]
+}

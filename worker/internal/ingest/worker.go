@@ -4,65 +4,85 @@ import (
 	"context"
 	"encoding/json"
 	"log"
-	"strings"
 
 	"github.com/uptrace/bun"
 	"golang.org/x/time/rate"
 
 	"github.com/sydchill/economic_indicators/shared/models"
+	"github.com/sydchill/economic_indicators/worker/internal/seed"
 )
 
-// Worker pulls the economic calendar and upserts events into the market
-// schema. It is safe to run repeatedly; the ON CONFLICT clauses make the
-// writes idempotent.
 type Worker struct {
-	db      *bun.DB
-	biquote *BiquoteClient
-	limiter *rate.Limiter
+	db       *bun.DB
+	biquote  *BiquoteClient
+	limiter  *rate.Limiter
+	mappings []seed.CompiledMapping
 }
 
-func NewWorker(db *bun.DB, biquote *BiquoteClient) *Worker {
+func NewWorker(db *bun.DB, biquote *BiquoteClient, mappings []seed.CompiledMapping) *Worker {
 	return &Worker{
-		db:      db,
-		biquote: biquote,
-		// One outbound request every two seconds. Applies per Worker
-		// instance; if you run multiple worker replicas, use a shared
-		// limiter (e.g. Redis token bucket) to respect the upstream quota.
-		limiter: rate.NewLimiter(rate.Every(2e9), 1), // 2e9 ns = 2 s
+		db:       db,
+		biquote:  biquote,
+		limiter:  rate.NewLimiter(rate.Every(2e9), 1), // 1 request / 2s
+		mappings: mappings,
 	}
 }
 
-// RunIngestOnce performs a single ingestion pass. Returns an error only
-// for failures that affect the whole run (network, decode). Per-event
-// errors are logged and skipped so one bad row cannot stall the batch.
 func (w *Worker) RunIngestOnce(ctx context.Context, countries []string) error {
-	if err := w.limiter.Wait(ctx); err != nil {
-		return err
-	}
-
-	events, err := w.biquote.FetchCalendar(ctx, countries, "high")
+	indicators, err := w.loadIndicatorIndex(ctx)
 	if err != nil {
 		return err
 	}
 
-	inserted, updated, skipped := 0, 0, 0
-	for _, ev := range events {
-		outcome, err := w.upsertEvent(ctx, ev)
-		if err != nil {
-			log.Printf("ingest skip event %s (%s): %v", ev.EventID, ev.Name, err)
-			skipped++
-			continue
+	inserted, updated, skipped, unmapped := 0, 0, 0, 0
+
+	for _, importance := range []string{"high", "medium"} {
+		if err := w.limiter.Wait(ctx); err != nil {
+			return err
 		}
-		switch outcome {
-		case upsertInserted:
-			inserted++
-		case upsertUpdated:
-			updated++
+		events, err := w.biquote.FetchCalendar(ctx, countries, importance)
+		if err != nil {
+			return err
+		}
+
+		for _, ev := range events {
+			if ev.Type != "" && ev.Type != "indicator" {
+				skipped++
+				continue
+			}
+
+			suffix, ok := seed.ResolveSuffix(w.mappings, ev.Name)
+			if !ok {
+				unmapped++
+				log.Printf("ingest: unmapped event %q (%s)", ev.Name, ev.Currency)
+				continue
+			}
+
+			indicatorCode := ev.Currency + "_" + suffix
+			indicatorID, ok := indicators[indicatorCode]
+			if !ok {
+				skipped++
+				log.Printf("ingest: no indicator row for %s", indicatorCode)
+				continue
+			}
+
+			outcome, err := w.upsertEconomicData(ctx, ev, indicatorID)
+			if err != nil {
+				skipped++
+				log.Printf("ingest: upsert %s failed: %v", indicatorCode, err)
+				continue
+			}
+			switch outcome {
+			case upsertInserted:
+				inserted++
+			case upsertUpdated:
+				updated++
+			}
 		}
 	}
 
-	log.Printf("ingest done: inserted=%d updated=%d skipped=%d total=%d",
-		inserted, updated, skipped, len(events))
+	log.Printf("econ ingest: inserted=%d updated=%d skipped=%d unmapped=%d",
+		inserted, updated, skipped, unmapped)
 	return nil
 }
 
@@ -73,53 +93,19 @@ const (
 	upsertUpdated
 )
 
-func (w *Worker) upsertEvent(ctx context.Context, ev BiquoteEvent) (upsertOutcome, error) {
-	if ev.Currency == "" || ev.Name == "" || ev.Time.IsZero() {
-		return 0, errIncompleteEvent
-	}
-
-	ind := &models.EconomicIndicator{
-		Code:         indicatorCode(ev.Currency, ev.Name),
-		Name:         ev.Name,
-		CurrencyCode: ev.Currency,
-		Importance:   normalizeImportance(ev.Importance),
-		Unit:         ev.Unit,
-	}
-	if _, err := w.db.NewInsert().Model(ind).
-		On("CONFLICT (code) DO UPDATE").
-		Set("name = EXCLUDED.name").
-		Set("importance = EXCLUDED.importance").
-		Set("unit = EXCLUDED.unit").
-		Returning("id").
-		Exec(ctx); err != nil {
-		return 0, err
-	}
-
+func (w *Worker) upsertEconomicData(ctx context.Context, ev BiquoteEvent, indicatorID int) (upsertOutcome, error) {
 	raw, err := json.Marshal(ev)
 	if err != nil {
 		return 0, err
 	}
 
-	data := &models.EconomicData{
-		IndicatorID:   ind.ID,
-		CurrencyCode:  ev.Currency,
-		ReleaseTime:   ev.Time.UTC(),
-		ActualValue:   ev.Actual,
-		ForecastValue: ev.Forecast,
-		PreviousValue: ev.Previous,
-		RevisedValue:  ev.Revised,
-		Source:        "biquote",
-		RawPayload:    raw,
-	}
-
-	// xmax = 0 distinguishes insert from update on Postgres.
 	var xmax int
 	err = w.db.NewRaw(`
 		INSERT INTO market.economic_data
-			(indicator_id, currency_code, release_time,
+			(indicator_id, currency_code, release_time, period_date,
 			 actual_value, forecast_value, previous_value, revised_value,
 			 source, raw_payload)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+		VALUES (?, ?, ?, NULL, ?, ?, ?, ?, 'biquote', ?)
 		ON CONFLICT (indicator_id, release_time) DO UPDATE SET
 			actual_value   = EXCLUDED.actual_value,
 			forecast_value = EXCLUDED.forecast_value,
@@ -128,42 +114,27 @@ func (w *Worker) upsertEvent(ctx context.Context, ev BiquoteEvent) (upsertOutcom
 			raw_payload    = EXCLUDED.raw_payload
 		RETURNING (xmax = 0)::int
 	`,
-		data.IndicatorID, data.CurrencyCode, data.ReleaseTime,
-		data.ActualValue, data.ForecastValue, data.PreviousValue, data.RevisedValue,
-		data.Source, data.RawPayload,
+		indicatorID, ev.Currency, ev.Time.UTC(),
+		ev.Actual, ev.Forecast, ev.Previous, ev.RevisedPrevious,
+		raw,
 	).Scan(ctx, &xmax)
 	if err != nil {
 		return 0, err
 	}
-
 	if xmax == 1 {
 		return upsertInserted, nil
 	}
 	return upsertUpdated, nil
 }
 
-func indicatorCode(currency, name string) string {
-	slug := strings.ToUpper(strings.ReplaceAll(strings.TrimSpace(name), " ", "_"))
-	return currency + "_" + slug
-}
-
-func normalizeImportance(v string) string {
-	switch strings.ToLower(v) {
-	case "high":
-		return "high"
-	case "medium":
-		return "medium"
-	default:
-		return "low"
+func (w *Worker) loadIndicatorIndex(ctx context.Context) (map[string]int, error) {
+	var rows []models.EconomicIndicator
+	if err := w.db.NewSelect().Model(&rows).Scan(ctx); err != nil {
+		return nil, err
 	}
+	idx := make(map[string]int, len(rows))
+	for _, r := range rows {
+		idx[r.Code] = r.ID
+	}
+	return idx, nil
 }
-
-// internal sentinel errors; log-only, never returned to callers of RunIngestOnce.
-var (
-	errIncompleteEvent = sentinel("incomplete event")
-	errUnknownCurrency = sentinel("currency not tracked")
-)
-
-type sentinel string
-
-func (s sentinel) Error() string { return string(s) }

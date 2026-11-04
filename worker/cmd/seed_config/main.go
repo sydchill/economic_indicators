@@ -12,7 +12,7 @@ import (
 
 	"github.com/sydchill/economic_indicators/shared/config"
 	"github.com/sydchill/economic_indicators/shared/db"
-	seed "github.com/sydchill/economic_indicators/worker/cmd/internal"
+	seed "github.com/sydchill/economic_indicators/worker/internal/ingest"
 )
 
 func main() {

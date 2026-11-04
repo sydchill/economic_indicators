@@ -1,4 +1,3 @@
-// worker/cmd/worker/main.go
 package main
 
 import (
@@ -14,17 +13,19 @@ import (
 	"github.com/sydchill/economic_indicators/shared/config"
 	"github.com/sydchill/economic_indicators/shared/db"
 	"github.com/sydchill/economic_indicators/worker/internal/ingest"
+	"github.com/sydchill/economic_indicators/worker/internal/ingest/yields"
+	"github.com/sydchill/economic_indicators/worker/internal/seed"
 )
 
 func main() {
 	_ = godotenv.Load()
 
-	cfg, err := config.LoadCommon()
+	cfg, err := config.LoadWorker()
 	if err != nil {
 		log.Fatalf("config: %v", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	bunDB, err := db.New(ctx, cfg.DatabaseURL)
 	cancel()
 	if err != nil {
@@ -32,36 +33,49 @@ func main() {
 	}
 	defer bunDB.Close()
 
-	// NO db.Migrate() here. Migrations are owned by cmd/migrate (Component 5.5)
-	// or a CI step, so multiple worker replicas never race on schema changes.
+	mappings, err := seed.LoadMapping("seed/indicator_mapping.json")
+	if err != nil {
+		log.Fatalf("mapping: %v", err)
+	}
 
-	client := ingest.NewBiquoteClient("")
-	worker := ingest.NewWorker(bunDB, client)
+	econWorker := ingest.NewWorker(bunDB, ingest.NewBiquoteClient(""), mappings)
+	yieldWorker := yields.NewWorker(bunDB)
 
 	stopCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	if cfg.IngestOnBoot {
-		log.Println("ingest: running once on boot")
-		ictx, icancel := context.WithTimeout(stopCtx, 5*time.Minute)
-		if err := worker.RunIngestOnce(ictx, ingest.MajorCountryCodes); err != nil {
-			log.Printf("ingest: %v", err)
+	runEcon := func() {
+		c, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+		defer cancel()
+		if err := econWorker.RunIngestOnce(c, ingest.MajorCountryCodes); err != nil {
+			log.Printf("econ ingest: %v", err)
 		}
-		icancel()
+	}
+	runYields := func() {
+		c, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+		defer cancel()
+		if err := yieldWorker.RunIngestOnce(c); err != nil {
+			log.Printf("yields ingest: %v", err)
+		}
 	}
 
-	ticker := time.NewTicker(cfg.IngestInterval)
-	defer ticker.Stop()
+	if cfg.IngestOnBoot {
+		runEcon()
+		runYields()
+	}
 
-	log.Printf("worker ready; interval=%s", cfg.IngestInterval)
+	econTicker := time.NewTicker(cfg.IngestInterval)
+	defer econTicker.Stop()
+	yieldTicker := time.NewTicker(cfg.YieldsIngestInterval)
+	defer yieldTicker.Stop()
+
+	log.Printf("worker ready: econ=%s yields=%s", cfg.IngestInterval, cfg.YieldsIngestInterval)
 	for {
 		select {
-		case <-ticker.C:
-			ictx, icancel := context.WithTimeout(context.Background(), 5*time.Minute)
-			if err := worker.RunIngestOnce(ictx, ingest.MajorCountryCodes); err != nil {
-				log.Printf("ingest: %v", err)
-			}
-			icancel()
+		case <-econTicker.C:
+			runEcon()
+		case <-yieldTicker.C:
+			runYields()
 		case <-stopCtx.Done():
 			log.Println("worker shutting down")
 			return

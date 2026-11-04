@@ -9,22 +9,23 @@ import (
 	"time"
 )
 
-// BiquoteEvent is one calendar row as returned by biquote.
 type BiquoteEvent struct {
-	EventID    string    `json:"eventId"`
-	Time       time.Time `json:"time"`
-	Country    string    `json:"countryCode"`
-	Currency   string    `json:"currency"`
-	Name       string    `json:"name"`
-	Importance string    `json:"importance"`
-	Unit       string    `json:"unit"`
-	Actual     *float64  `json:"actual"`
-	Forecast   *float64  `json:"forecast"`
-	Previous   *float64  `json:"previous"`
-	Revised    *float64  `json:"revisedPrevious"`
+	EventID         string    `json:"eventId"`
+	Time            time.Time `json:"time"`
+	CountryCode     string    `json:"countryCode"`
+	Currency        string    `json:"currency"`
+	Name            string    `json:"name"`
+	Importance      string    `json:"importance"`
+	Type            string    `json:"type"`
+	Unit            string    `json:"unit"`
+	Multiplier      string    `json:"multiplier"`
+	Actual          *float64  `json:"actual"`
+	Forecast        *float64  `json:"forecast"`
+	Previous        *float64  `json:"previous"`
+	RevisedPrevious *float64  `json:"revisedPrevious"`
+	TimeMode        string    `json:"timeMode"`
 }
 
-// BiquoteClient wraps the biquote HTTP API.
 type BiquoteClient struct {
 	baseURL string
 	http    *http.Client
@@ -36,12 +37,10 @@ func NewBiquoteClient(baseURL string) *BiquoteClient {
 	}
 	return &BiquoteClient{
 		baseURL: strings.TrimRight(baseURL, "/"),
-		http:    &http.Client{Timeout: 15 * time.Second},
+		http:    &http.Client{Timeout: 20 * time.Second},
 	}
 }
 
-// FetchCalendar returns upcoming and recent releases for the given ISO
-// country codes, filtered by importance ("high" keeps the ingest small).
 func (c *BiquoteClient) FetchCalendar(ctx context.Context, countries []string, importance string) ([]BiquoteEvent, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.baseURL+"/api/calendar", nil)
 	if err != nil {

@@ -20,8 +20,9 @@ type Config struct {
 	GoogleClientID string
 
 	// Worker-only. Ignored by the server.
-	IngestInterval time.Duration
-	IngestOnBoot   bool
+	IngestInterval       time.Duration
+	IngestOnBoot         bool
+	YieldsIngestInterval time.Duration
 }
 
 // LoadCommon loads and validates the settings shared by both binaries.
