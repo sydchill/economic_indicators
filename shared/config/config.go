@@ -39,12 +39,18 @@ func LoadCommon() (*Config, error) {
 		return nil, err
 	}
 
+	yieldsInterval, err := parseDurationEnv("YIELDS_INGEST_INTERVAL", 24*time.Hour) // ← add
+	if err != nil {
+		return nil, err
+	}
+
 	return &Config{
-		DatabaseURL:    dsn,
-		HTTPAddr:       envOrDefault("HTTP_ADDR", ":8080"),
-		GoogleClientID: os.Getenv("GOOGLE_CLIENT_ID"),
-		IngestInterval: interval,
-		IngestOnBoot:   parseBoolEnv("INGEST_ON_BOOT", false),
+		DatabaseURL:          dsn,
+		HTTPAddr:             envOrDefault("HTTP_ADDR", ":8080"),
+		GoogleClientID:       os.Getenv("GOOGLE_CLIENT_ID"),
+		IngestInterval:       interval,
+		YieldsIngestInterval: yieldsInterval, // ← add
+		IngestOnBoot:         parseBoolEnv("INGEST_ON_BOOT", false),
 	}, nil
 }
 
