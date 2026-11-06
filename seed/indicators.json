@@ -1,0 +1,197 @@
+{
+  "indicators": [
+    {
+      "slug": "growth.gdp_qoq",
+      "name": "GDP Growth Rate (QoQ)",
+      "te_name": "GDP Growth Rate",
+      "category": "growth",
+      "unit": "percent"
+    },
+    {
+      "slug": "growth.gdp_yoy",
+      "name": "GDP Annual Growth Rate",
+      "te_name": "GDP Annual Growth Rate",
+      "category": "growth",
+      "unit": "percent"
+    },
+    {
+      "slug": "growth.pmi_manufacturing",
+      "name": "Manufacturing PMI",
+      "te_name": "Manufacturing PMI",
+      "category": "growth",
+      "unit": "points"
+    },
+    {
+      "slug": "growth.pmi_services",
+      "name": "Services PMI",
+      "te_name": "Services PMI",
+      "category": "growth",
+      "unit": "points"
+    },
+    {
+      "slug": "growth.retail_sales_mom",
+      "name": "Retail Sales MoM",
+      "te_name": "Retail Sales MoM",
+      "category": "growth",
+      "unit": "percent"
+    },
+
+    {
+      "slug": "labour.unemployment_rate",
+      "name": "Unemployment Rate",
+      "te_name": "Unemployment Rate",
+      "category": "labour",
+      "unit": "percent"
+    },
+    {
+      "slug": "labour.nfp",
+      "name": "Nonfarm Payrolls",
+      "te_name": "Non Farm Payrolls",
+      "category": "labour",
+      "unit": "thousands"
+    },
+    {
+      "slug": "labour.adp_employment_change",
+      "name": "ADP Employment Change",
+      "te_name": "ADP Employment Change",
+      "category": "labour",
+      "unit": "thousands"
+    },
+    {
+      "slug": "labour.initial_claims",
+      "name": "Initial Jobless Claims",
+      "te_name": "Initial Jobless Claims",
+      "category": "labour",
+      "unit": "thousands"
+    },
+    {
+      "slug": "labour.continuing_claims",
+      "name": "Continuing Jobless Claims",
+      "te_name": "Continuing Jobless Claims",
+      "category": "labour",
+      "unit": "thousands"
+    },
+    {
+      "slug": "labour.employment_change_thousands",
+      "name": "Employment Change (thousands)",
+      "te_name": "Employment Change",
+      "category": "labour",
+      "unit": "thousands"
+    },
+    {
+      "slug": "labour.employment_change_yoy",
+      "name": "Employment Change YoY",
+      "te_name": "Employment Change YoY",
+      "category": "labour",
+      "unit": "percent"
+    },
+    {
+      "slug": "labour.employment_change_qoq",
+      "name": "Employment Change QoQ",
+      "te_name": "Employment Change",
+      "category": "labour",
+      "unit": "percent"
+    },
+    {
+      "slug": "labour.claimant_count_change",
+      "name": "Claimant Count Change",
+      "te_name": "Claimant Count Change",
+      "category": "labour",
+      "unit": "thousands"
+    },
+    {
+      "slug": "labour.employment_rate",
+      "name": "Employment Rate",
+      "te_name": "Employment Rate",
+      "category": "labour",
+      "unit": "percent"
+    },
+    {
+      "slug": "labour.participation_rate",
+      "name": "Labor Force Participation Rate",
+      "te_name": "Labor Force Participation Rate",
+      "category": "labour",
+      "unit": "percent"
+    },
+    {
+      "slug": "labour.wage_growth_yoy",
+      "name": "Wage Growth YoY",
+      "te_name": "Wage Growth",
+      "category": "labour",
+      "unit": "percent"
+    },
+    {
+      "slug": "labour.negotiated_wage_growth",
+      "name": "Negotiated Wage Growth",
+      "te_name": "Negotiated Wage Growth",
+      "category": "labour",
+      "unit": "percent"
+    },
+    {
+      "slug": "labour.job_openings",
+      "name": "Job Openings",
+      "te_name": "Job Vacancies",
+      "category": "labour",
+      "unit": "thousands"
+    },
+    {
+      "slug": "labour.job_vacancies_index",
+      "name": "Job Vacancies Index",
+      "te_name": "Job Vacancies",
+      "category": "labour",
+      "unit": "index_points"
+    },
+    {
+      "slug": "labour.job_vacancy_rate",
+      "name": "Job Vacancy Rate",
+      "te_name": "Job Vacancy Rate",
+      "category": "labour",
+      "unit": "percent"
+    },
+    {
+      "slug": "labour.jobs_to_applications",
+      "name": "Jobs-to-Applications Ratio",
+      "te_name": "Jobs To Applications Ratio",
+      "category": "labour",
+      "unit": "ratio"
+    },
+
+    {
+      "slug": "inflation.cpi_yoy",
+      "name": "CPI YoY",
+      "te_name": "Inflation Rate",
+      "category": "inflation",
+      "unit": "percent"
+    },
+    {
+      "slug": "inflation.cpi_mom",
+      "name": "CPI MoM",
+      "te_name": "Inflation Rate MoM",
+      "category": "inflation",
+      "unit": "percent"
+    },
+
+    {
+      "slug": "cb.policy_rate",
+      "name": "Policy Rate",
+      "te_name": "Interest Rate",
+      "category": "central_bank",
+      "unit": "percent"
+    },
+
+    {
+      "slug": "sentiment.business_confidence",
+      "name": "Business Confidence",
+      "te_name": "Business Confidence",
+      "category": "sentiment",
+      "unit": "points"
+    },
+    {
+      "slug": "sentiment.consumer_confidence",
+      "name": "Consumer Confidence",
+      "te_name": "Consumer Confidence",
+      "category": "sentiment",
+      "unit": "points"
+    }
+  ]
+}
