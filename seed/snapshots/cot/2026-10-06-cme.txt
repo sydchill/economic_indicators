@@ -1,0 +1,21 @@
+EURO FX - CHICAGO MERCANTILE EXCHANGE                                                                   Code-099741
+Commitments of Traders - Futures Only, October 06, 2026
+All  :   870,291:   243,020    342,352     39,238    504,296    432,272    786,554    813,862:    83,737     56,429
+BRITISH POUND - CHICAGO MERCANTILE EXCHANGE                                                             Code-096742
+Commitments of Traders - Futures Only, October 06, 2026
+All  :   265,890:    45,259    142,870      2,899    197,105     85,238    245,263    231,007:    20,627     34,883
+JAPANESE YEN - CHICAGO MERCANTILE EXCHANGE                                                              Code-097741
+Commitments of Traders - Futures Only, October 06, 2026
+All  :   368,138:   190,368    128,043      3,004    140,231    201,980    333,603    333,027:    34,535     35,111
+SWISS FRANC - CHICAGO MERCANTILE EXCHANGE                                                               Code-092741
+Commitments of Traders - Futures Only, October 06, 2026
+All  :   137,185:    27,818     51,558      6,649     92,327     55,041    126,794    113,248:    10,391     23,937
+CANADIAN DOLLAR - CHICAGO MERCANTILE EXCHANGE                                                           Code-090741
+Commitments of Traders - Futures Only, October 06, 2026
+All  :   371,048:    91,109    181,272      4,394    248,311    144,809    343,814    330,475:    27,234     40,573
+AUSTRALIAN DOLLAR - CHICAGO MERCANTILE EXCHANGE                                                         Code-232741
+Commitments of Traders - Futures Only, October 06, 2026
+All  :   328,682:   100,138    198,726      2,406    193,742    108,650    296,286    309,782:    32,396     18,900
+NZ DOLLAR - CHICAGO MERCANTILE EXCHANGE                                                                 Code-112741
+Commitments of Traders - Futures Only, October 06, 2026
+All  :   129,883:    27,821     57,167        626     97,032     65,652    125,479    123,445:     4,404      6,438

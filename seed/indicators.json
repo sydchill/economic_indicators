@@ -178,7 +178,13 @@
       "category": "central_bank",
       "unit": "percent"
     },
-
+    {
+      "slug": "cot.noncommercial_net",
+      "name": "CFTC Non-Commercial Net Position",
+      "te_name": "CFTC COT Non-Commercial Net",
+      "category": "cot",
+      "unit": "contracts"
+    },
     {
       "slug": "sentiment.business_confidence",
       "name": "Business Confidence",

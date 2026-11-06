@@ -1,0 +1,38 @@
+{
+  "pairs": [
+    { "symbol": "EURUSD", "base": "EUR", "quote": "USD" },
+    { "symbol": "EURGBP", "base": "EUR", "quote": "GBP" },
+    { "symbol": "EURJPY", "base": "EUR", "quote": "JPY" },
+    { "symbol": "EURCHF", "base": "EUR", "quote": "CHF" },
+    { "symbol": "EURCAD", "base": "EUR", "quote": "CAD" },
+    { "symbol": "EURAUD", "base": "EUR", "quote": "AUD" },
+    { "symbol": "EURNZD", "base": "EUR", "quote": "NZD" },
+
+    { "symbol": "GBPUSD", "base": "GBP", "quote": "USD" },
+    { "symbol": "GBPJPY", "base": "GBP", "quote": "JPY" },
+    { "symbol": "GBPCHF", "base": "GBP", "quote": "CHF" },
+    { "symbol": "GBPCAD", "base": "GBP", "quote": "CAD" },
+    { "symbol": "GBPAUD", "base": "GBP", "quote": "AUD" },
+    { "symbol": "GBPNZD", "base": "GBP", "quote": "NZD" },
+
+    { "symbol": "AUDUSD", "base": "AUD", "quote": "USD" },
+    { "symbol": "AUDNZD", "base": "AUD", "quote": "NZD" },
+    { "symbol": "AUDCAD", "base": "AUD", "quote": "CAD" },
+    { "symbol": "AUDCHF", "base": "AUD", "quote": "CHF" },
+    { "symbol": "AUDJPY", "base": "AUD", "quote": "JPY" },
+
+    { "symbol": "NZDUSD", "base": "NZD", "quote": "USD" },
+    { "symbol": "NZDCAD", "base": "NZD", "quote": "CAD" },
+    { "symbol": "NZDCHF", "base": "NZD", "quote": "CHF" },
+    { "symbol": "NZDJPY", "base": "NZD", "quote": "JPY" },
+
+    { "symbol": "USDCAD", "base": "USD", "quote": "CAD" },
+    { "symbol": "USDCHF", "base": "USD", "quote": "CHF" },
+    { "symbol": "USDJPY", "base": "USD", "quote": "JPY" },
+
+    { "symbol": "CADCHF", "base": "CAD", "quote": "CHF" },
+    { "symbol": "CADJPY", "base": "CAD", "quote": "JPY" },
+
+    { "symbol": "CHFJPY", "base": "CHF", "quote": "JPY" }
+  ]
+}

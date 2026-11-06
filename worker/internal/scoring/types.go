@@ -24,6 +24,7 @@ type Observation struct {
 	PreviousValue *float64
 	ForecastValue *float64
 	ReleaseDate   time.Time
+	IsCOT         bool
 }
 
 // Output types --------------------------------------------------------------
@@ -32,6 +33,7 @@ const (
 	ModeTrend    = "trend"
 	ModeSurprise = "surprise"
 	ModeDropped  = "dropped"
+	ModeCOT      = "cot"
 )
 
 type IndicatorSignal struct {

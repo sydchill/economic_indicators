@@ -44,12 +44,13 @@ func ComputeSignal(
 		return sig
 	}
 
-	// Future: if obs.ForecastValue != nil, use surprise mode.
-	// Today all rows have ForecastValue == nil, so we always take trend.
-
 	if obs.PreviousValue == nil {
 		sig.Mode = ModeDropped
-		sig.DropReason = "previous_value is null (cannot compute trend)"
+		if obs.IsCOT {
+			sig.DropReason = "no prior COT report"
+		} else {
+			sig.DropReason = "previous_value is null (cannot compute trend)"
+		}
 		return sig
 	}
 
@@ -64,7 +65,11 @@ func ComputeSignal(
 		raw = -100.0
 	}
 	sig.Signal = raw * float64(cfg.Direction)
-	sig.Mode = ModeTrend
+	if obs.IsCOT {
+		sig.Mode = ModeCOT
+	} else {
+		sig.Mode = ModeTrend
+	}
 	return sig
 }
 

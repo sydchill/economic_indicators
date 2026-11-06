@@ -1,0 +1,27 @@
+# 1. Build snapshots/2026-11-09.json
+#    Manually from TradingEconomics — see format below.
+#    Only include indicators that released a new value that day.
+
+# 2. Import the snapshot (dry-run, then write)
+go run ./worker/cmd/import_snapshot --file snapshots/2026-11-09.json
+go run ./worker/cmd/import_snapshot --file snapshots/2026-11-09.json --apply
+
+# 3. Score
+go run ./worker/cmd/score --date 2026-11-09 -v
+go run ./worker/cmd/score --date 2026-11-09 -v --apply
+
+
+# 1. Download deafut.txt from CFTC
+#    https://www.cftc.gov/dea/newcot/deafut.txt
+
+# 2. Save as snapshots/cot/deafut-2026-11-13.txt
+#    (filename is cosmetic; the importer reads the report date from inside)
+
+# 3. Import COT (dry-run, then write)
+go run ./worker/cmd/import_cot --file snapshots/cot/deafut-2026-11-13.txt
+go run ./worker/cmd/import_cot --file snapshots/cot/deafut-2026-11-13.txt --apply
+
+# 4. If economic data also released Friday, do the snapshot flow too (step 2-3 above)
+
+# 5. Score
+go run ./worker/cmd/score --date 2026-11-13 -v --apply

@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -276,50 +277,128 @@ func loadObservations(
 	}
 	out := map[int64]*scoring.Observation{}
 	for _, ic := range cfgs {
-		var (
-			periodStr      string
-			value          float64
-			previousValue  sql.NullFloat64
-			forecastValue  sql.NullFloat64
-			releaseDateStr string
-		)
-		err := db.QueryRowContext(ctx, `
-			SELECT period::text, value, previous_value, forecast_value, release_date::text
-			FROM market.economic_data
-			WHERE indicator_id = $1 AND currency = $2
-			ORDER BY period DESC
-			LIMIT 1
-		`, ic.IndicatorID, currency).Scan(
-			&periodStr, &value, &previousValue, &forecastValue, &releaseDateStr,
-		)
-		if err == sql.ErrNoRows {
-			continue
+		var obs *scoring.Observation
+		var err error
+		if strings.HasPrefix(ic.Slug, "cot.") {
+			obs, err = loadCOTObservation(ctx, db, currency)
+		} else {
+			obs, err = loadEconomicObservation(ctx, db, ic.IndicatorID, currency)
 		}
 		if err != nil {
-			return nil, fmt.Errorf("indicator %d/%s: %w", ic.IndicatorID, currency, err)
+			return nil, fmt.Errorf("%s/%s: %w", ic.Slug, currency, err)
 		}
-		period, err := time.Parse("2006-01-02", periodStr)
-		if err != nil {
-			return nil, fmt.Errorf("indicator %d/%s: parse period %q: %w", ic.IndicatorID, currency, periodStr, err)
+		if obs != nil {
+			out[ic.IndicatorID] = obs
 		}
-		releaseDate, err := time.Parse("2006-01-02", releaseDateStr)
-		if err != nil {
-			return nil, fmt.Errorf("indicator %d/%s: parse release_date %q: %w", ic.IndicatorID, currency, releaseDateStr, err)
-		}
-		obs := &scoring.Observation{
-			Period:      period,
-			Value:       value,
-			ReleaseDate: releaseDate,
-		}
-		if previousValue.Valid {
-			obs.PreviousValue = &previousValue.Float64
-		}
-		if forecastValue.Valid {
-			obs.ForecastValue = &forecastValue.Float64
-		}
-		out[ic.IndicatorID] = obs
 	}
 	return out, nil
+}
+
+func loadEconomicObservation(
+	ctx context.Context,
+	db *sql.DB,
+	indicatorID int64,
+	currency string,
+) (*scoring.Observation, error) {
+	var (
+		periodStr      string
+		value          float64
+		previousValue  sql.NullFloat64
+		forecastValue  sql.NullFloat64
+		releaseDateStr string
+	)
+	err := db.QueryRowContext(ctx, `
+		SELECT period::text, value, previous_value, forecast_value, release_date::text
+		FROM market.economic_data
+		WHERE indicator_id = $1 AND currency = $2
+		ORDER BY period DESC
+		LIMIT 1
+	`, indicatorID, currency).Scan(
+		&periodStr, &value, &previousValue, &forecastValue, &releaseDateStr,
+	)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	period, err := time.Parse("2006-01-02", periodStr)
+	if err != nil {
+		return nil, fmt.Errorf("parse period %q: %w", periodStr, err)
+	}
+	releaseDate, err := time.Parse("2006-01-02", releaseDateStr)
+	if err != nil {
+		return nil, fmt.Errorf("parse release_date %q: %w", releaseDateStr, err)
+	}
+	obs := &scoring.Observation{
+		Period:      period,
+		Value:       value,
+		ReleaseDate: releaseDate,
+	}
+	if previousValue.Valid {
+		obs.PreviousValue = &previousValue.Float64
+	}
+	if forecastValue.Valid {
+		obs.ForecastValue = &forecastValue.Float64
+	}
+	return obs, nil
+}
+
+// loadCOTObservation returns the latest two COT reports for one currency so
+// the engine can compute a week-over-week change. noncommercial_net is BIGINT
+// in the schema, so it scans into int64 and converts — avoids any driver
+// coercion surprises with numeric columns.
+func loadCOTObservation(
+	ctx context.Context,
+	db *sql.DB,
+	currency string,
+) (*scoring.Observation, error) {
+	rows, err := db.QueryContext(ctx, `
+		SELECT report_date::text, noncommercial_net
+		FROM market.cot_data
+		WHERE currency = $1
+		ORDER BY report_date DESC
+		LIMIT 2
+	`, currency)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	type row struct {
+		period string
+		net    int64
+	}
+	var rr []row
+	for rows.Next() {
+		var r row
+		if err := rows.Scan(&r.period, &r.net); err != nil {
+			return nil, err
+		}
+		rr = append(rr, r)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	if len(rr) == 0 {
+		return nil, nil
+	}
+
+	period, err := time.Parse("2006-01-02", rr[0].period)
+	if err != nil {
+		return nil, fmt.Errorf("parse COT report_date %q: %w", rr[0].period, err)
+	}
+	obs := &scoring.Observation{
+		Period:      period,
+		Value:       float64(rr[0].net),
+		ReleaseDate: period,
+		IsCOT:       true,
+	}
+	if len(rr) >= 2 {
+		prev := float64(rr[1].net)
+		obs.PreviousValue = &prev
+	}
+	return obs, nil
 }
 
 func ptr(p *float64) any {
