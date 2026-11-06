@@ -5,6 +5,8 @@ import (
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 // Config holds every environment-driven setting used by the API server
@@ -29,6 +31,7 @@ type Config struct {
 // Only DATABASE_URL is mandatory at this layer; everything else has a
 // safe default so the worker can start with a minimal environment.
 func LoadCommon() (*Config, error) {
+	_ = godotenv.Load()
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
 		return nil, fmt.Errorf("DATABASE_URL is required")

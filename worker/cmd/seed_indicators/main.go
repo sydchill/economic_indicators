@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/sydchill/economic_indicators/shared/config"
 	_ "github.com/uptrace/bun/driver/pgdriver"
 )
 
@@ -60,11 +61,11 @@ func main() {
 		return
 	}
 
-	dsn := os.Getenv("DATABASE_URL")
-	if dsn == "" {
-		fatal(fmt.Errorf("DATABASE_URL required"))
+	cfg, err := config.LoadWorker()
+	if err != nil {
+		fatal(err)
 	}
-	db, err := sql.Open("pgx", dsn)
+	db, err := sql.Open("pg", cfg.DatabaseURL)
 	if err != nil {
 		fatal(err)
 	}

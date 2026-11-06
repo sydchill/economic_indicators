@@ -1,140 +1,121 @@
 {
-  "version": 1,
+  "version": 2,
+  "lookback_days": 90,
   "templates": {
     "currency": {
       "category_weights": {
-        "rates":     { "weight": 0.30, "params": { "maturity": 2,  "direction": 1 } },
-        "inflation": { "weight": 0.20 },
-        "jobs":      { "weight": 0.20 },
-        "growth":    { "weight": 0.15 },
-        "cot":       { "weight": 0.15, "params": { "direction": 1 } }
+        "central_bank": { "weight": 0.30 },
+        "inflation":    { "weight": 0.20 },
+        "labour":       { "weight": 0.20 },
+        "growth":       { "weight": 0.15 },
+        "cot":          { "weight": 0.15 }
       },
-      "indicators": {
-        "growth": [
-          { "suffix": "GDP_QOQ",          "direction":  1, "weight": 0.30 },
-          { "suffix": "MFG_PMI",          "direction":  1, "weight": 0.25 },
-          { "suffix": "SVC_PMI",          "direction":  1, "weight": 0.25 },
-          { "suffix": "RETAIL_SALES_MOM", "direction":  1, "weight": 0.10 },
-          { "suffix": "CONSUMER_CONF",    "direction":  1, "weight": 0.10 }
-        ],
-        "inflation": [
-          { "suffix": "CPI_YOY", "direction":  1, "weight": 0.50 },
-          { "suffix": "PCE_YOY", "direction":  1, "weight": 0.30 },
-          { "suffix": "PPI_YOY", "direction":  1, "weight": 0.20 }
-        ],
-        "jobs": [
-          { "suffix": "NFP",            "direction":  1, "weight": 0.30 },
-          { "suffix": "UNEMPLOYMENT",   "direction": -1, "weight": 0.25 },
-          { "suffix": "JOBLESS_CLAIMS", "direction": -1, "weight": 0.20 },
-          { "suffix": "ADP",            "direction":  1, "weight": 0.15 },
-          { "suffix": "JOLTS",          "direction":  1, "weight": 0.10 }
-        ]
-      }
+      "indicators": [
+        { "slug": "cb.policy_rate",                "category": "central_bank", "direction":  1, "weight": 1.00 },
+        { "slug": "inflation.cpi_yoy",             "category": "inflation",    "direction":  1, "weight": 0.80 },
+        { "slug": "inflation.cpi_mom",             "category": "inflation",    "direction":  1, "weight": 0.20 },
+        { "slug": "labour.nfp",                    "category": "labour",       "direction":  1, "weight": 0.30 },
+        { "slug": "labour.unemployment_rate",      "category": "labour",       "direction": -1, "weight": 0.25 },
+        { "slug": "labour.initial_claims",         "category": "labour",       "direction": -1, "weight": 0.20 },
+        { "slug": "labour.adp_employment_change",  "category": "labour",       "direction":  1, "weight": 0.15 },
+        { "slug": "labour.job_openings",           "category": "labour",       "direction":  1, "weight": 0.10 },
+        { "slug": "growth.gdp_qoq",                "category": "growth",       "direction":  1, "weight": 0.30 },
+        { "slug": "growth.pmi_manufacturing",      "category": "growth",       "direction":  1, "weight": 0.25 },
+        { "slug": "growth.pmi_services",           "category": "growth",       "direction":  1, "weight": 0.25 },
+        { "slug": "growth.retail_sales_mom",       "category": "growth",       "direction":  1, "weight": 0.10 },
+        { "slug": "sentiment.consumer_confidence", "category": "growth",       "direction":  1, "weight": 0.10 }
+      ]
     },
+
     "metal_usd": {
       "category_weights": {
-        "rates":     { "weight": 0.40, "params": { "maturity": 10, "direction": -1 } },
-        "inflation": { "weight": 0.25 },
-        "cot":       { "weight": 0.20, "params": { "direction": 1 } },
-        "growth":    { "weight": 0.10 },
-        "jobs":      { "weight": 0.05 }
+        "central_bank": { "weight": 0.40 },
+        "inflation":    { "weight": 0.25 },
+        "labour":       { "weight": 0.05 },
+        "growth":       { "weight": 0.10 },
+        "cot":          { "weight": 0.20 }
       },
-      "indicators": {
-        "growth": [
-          { "suffix": "GDP_QOQ",          "direction": 1, "weight": 0.30 },
-          { "suffix": "MFG_PMI",          "direction": 1, "weight": 0.30 },
-          { "suffix": "SVC_PMI",          "direction": 1, "weight": 0.10 },
-          { "suffix": "RETAIL_SALES_MOM", "direction": 1, "weight": 0.20 },
-          { "suffix": "CONSUMER_CONF",    "direction": 1, "weight": 0.10 }
-        ],
-        "inflation": [
-          { "suffix": "CPI_YOY", "direction": 1, "weight": 0.40 },
-          { "suffix": "PCE_YOY", "direction": 1, "weight": 0.40 },
-          { "suffix": "PPI_YOY", "direction": 1, "weight": 0.20 }
-        ],
-        "jobs": [
-          { "suffix": "NFP",            "direction": -1, "weight": 0.30 },
-          { "suffix": "UNEMPLOYMENT",   "direction":  1, "weight": 0.25 },
-          { "suffix": "JOBLESS_CLAIMS", "direction":  1, "weight": 0.20 },
-          { "suffix": "ADP",            "direction": -1, "weight": 0.15 },
-          { "suffix": "JOLTS",          "direction": -1, "weight": 0.10 }
-        ]
-      }
+      "indicators": [
+        { "slug": "cb.policy_rate",                "category": "central_bank", "direction": -1, "weight": 1.00 },
+        { "slug": "inflation.cpi_yoy",             "category": "inflation",    "direction":  1, "weight": 0.80 },
+        { "slug": "inflation.cpi_mom",             "category": "inflation",    "direction":  1, "weight": 0.20 },
+        { "slug": "labour.nfp",                    "category": "labour",       "direction": -1, "weight": 0.30 },
+        { "slug": "labour.unemployment_rate",      "category": "labour",       "direction":  1, "weight": 0.25 },
+        { "slug": "labour.initial_claims",         "category": "labour",       "direction":  1, "weight": 0.20 },
+        { "slug": "labour.adp_employment_change",  "category": "labour",       "direction": -1, "weight": 0.15 },
+        { "slug": "labour.job_openings",           "category": "labour",       "direction": -1, "weight": 0.10 },
+        { "slug": "growth.gdp_qoq",                "category": "growth",       "direction":  1, "weight": 0.30 },
+        { "slug": "growth.pmi_manufacturing",      "category": "growth",       "direction":  1, "weight": 0.30 },
+        { "slug": "growth.pmi_services",           "category": "growth",       "direction":  1, "weight": 0.10 },
+        { "slug": "growth.retail_sales_mom",       "category": "growth",       "direction":  1, "weight": 0.20 },
+        { "slug": "sentiment.consumer_confidence", "category": "growth",       "direction":  1, "weight": 0.10 }
+      ]
     },
+
     "index_usd": {
       "category_weights": {
-        "rates":     { "weight": 0.30, "params": { "maturity": 10, "direction": -1 } },
-        "growth":    { "weight": 0.25 },
-        "inflation": { "weight": 0.20 },
-        "jobs":      { "weight": 0.15 },
-        "cot":       { "weight": 0.10, "params": { "direction": 1 } }
+        "central_bank": { "weight": 0.30 },
+        "growth":       { "weight": 0.25 },
+        "inflation":    { "weight": 0.20 },
+        "labour":       { "weight": 0.15 },
+        "cot":          { "weight": 0.10 }
       },
-      "indicators": {
-        "growth": [
-          { "suffix": "GDP_QOQ",          "direction": 1, "weight": 0.25 },
-          { "suffix": "MFG_PMI",          "direction": 1, "weight": 0.10 },
-          { "suffix": "SVC_PMI",          "direction": 1, "weight": 0.30 },
-          { "suffix": "RETAIL_SALES_MOM", "direction": 1, "weight": 0.20 },
-          { "suffix": "CONSUMER_CONF",    "direction": 1, "weight": 0.15 }
-        ],
-        "inflation": [
-          { "suffix": "CPI_YOY", "direction": -1, "weight": 0.40 },
-          { "suffix": "PCE_YOY", "direction": -1, "weight": 0.40 },
-          { "suffix": "PPI_YOY", "direction": -1, "weight": 0.20 }
-        ],
-        "jobs": [
-          { "suffix": "NFP",            "direction": -1, "weight": 0.30 },
-          { "suffix": "UNEMPLOYMENT",   "direction":  1, "weight": 0.25 },
-          { "suffix": "JOBLESS_CLAIMS", "direction":  1, "weight": 0.20 },
-          { "suffix": "ADP",            "direction": -1, "weight": 0.15 },
-          { "suffix": "JOLTS",          "direction": -1, "weight": 0.10 }
-        ]
-      }
+      "indicators": [
+        { "slug": "cb.policy_rate",                "category": "central_bank", "direction": -1, "weight": 1.00 },
+        { "slug": "inflation.cpi_yoy",             "category": "inflation",    "direction": -1, "weight": 0.80 },
+        { "slug": "inflation.cpi_mom",             "category": "inflation",    "direction": -1, "weight": 0.20 },
+        { "slug": "labour.nfp",                    "category": "labour",       "direction": -1, "weight": 0.30 },
+        { "slug": "labour.unemployment_rate",      "category": "labour",       "direction":  1, "weight": 0.25 },
+        { "slug": "labour.initial_claims",         "category": "labour",       "direction":  1, "weight": 0.20 },
+        { "slug": "labour.adp_employment_change",  "category": "labour",       "direction": -1, "weight": 0.15 },
+        { "slug": "labour.job_openings",           "category": "labour",       "direction": -1, "weight": 0.10 },
+        { "slug": "growth.gdp_qoq",                "category": "growth",       "direction":  1, "weight": 0.25 },
+        { "slug": "growth.pmi_manufacturing",      "category": "growth",       "direction":  1, "weight": 0.10 },
+        { "slug": "growth.pmi_services",           "category": "growth",       "direction":  1, "weight": 0.30 },
+        { "slug": "growth.retail_sales_mom",       "category": "growth",       "direction":  1, "weight": 0.20 },
+        { "slug": "sentiment.consumer_confidence", "category": "growth",       "direction":  1, "weight": 0.15 }
+      ]
     },
+
     "index_jpy": {
       "category_weights": {
-        "rates":     { "weight": 0.30, "params": { "maturity": 10, "direction": -1 } },
-        "inflation": { "weight": 0.25 },
-        "growth":    { "weight": 0.20 },
-        "jobs":      { "weight": 0.15 },
-        "cot":       { "weight": 0.10, "params": { "direction": 1 } }
+        "central_bank": { "weight": 0.30 },
+        "inflation":    { "weight": 0.25 },
+        "growth":       { "weight": 0.20 },
+        "labour":       { "weight": 0.15 },
+        "cot":          { "weight": 0.10 }
       },
-      "indicators": {
-        "growth": [
-          { "suffix": "GDP_QOQ",          "direction": 1, "weight": 0.25 },
-          { "suffix": "MFG_PMI",          "direction": 1, "weight": 0.10 },
-          { "suffix": "SVC_PMI",          "direction": 1, "weight": 0.30 },
-          { "suffix": "RETAIL_SALES_MOM", "direction": 1, "weight": 0.20 },
-          { "suffix": "CONSUMER_CONF",    "direction": 1, "weight": 0.15 }
-        ],
-        "inflation": [
-          { "suffix": "CPI_YOY", "direction": -1, "weight": 0.50 },
-          { "suffix": "PCE_YOY", "direction": -1, "weight": 0.30 },
-          { "suffix": "PPI_YOY", "direction": -1, "weight": 0.20 }
-        ],
-        "jobs": [
-          { "suffix": "NFP",            "direction": -1, "weight": 0.30 },
-          { "suffix": "UNEMPLOYMENT",   "direction":  1, "weight": 0.25 },
-          { "suffix": "JOBLESS_CLAIMS", "direction":  1, "weight": 0.20 },
-          { "suffix": "ADP",            "direction": -1, "weight": 0.15 },
-          { "suffix": "JOLTS",          "direction": -1, "weight": 0.10 }
-        ]
-      }
+      "indicators": [
+        { "slug": "cb.policy_rate",                "category": "central_bank", "direction": -1, "weight": 1.00 },
+        { "slug": "inflation.cpi_yoy",             "category": "inflation",    "direction": -1, "weight": 0.80 },
+        { "slug": "inflation.cpi_mom",             "category": "inflation",    "direction": -1, "weight": 0.20 },
+        { "slug": "labour.nfp",                    "category": "labour",       "direction": -1, "weight": 0.30 },
+        { "slug": "labour.unemployment_rate",      "category": "labour",       "direction":  1, "weight": 0.25 },
+        { "slug": "labour.initial_claims",         "category": "labour",       "direction":  1, "weight": 0.20 },
+        { "slug": "labour.adp_employment_change",  "category": "labour",       "direction": -1, "weight": 0.15 },
+        { "slug": "labour.job_openings",           "category": "labour",       "direction": -1, "weight": 0.10 },
+        { "slug": "growth.gdp_qoq",                "category": "growth",       "direction":  1, "weight": 0.25 },
+        { "slug": "growth.pmi_manufacturing",      "category": "growth",       "direction":  1, "weight": 0.10 },
+        { "slug": "growth.pmi_services",           "category": "growth",       "direction":  1, "weight": 0.30 },
+        { "slug": "growth.retail_sales_mom",       "category": "growth",       "direction":  1, "weight": 0.20 },
+        { "slug": "sentiment.consumer_confidence", "category": "growth",       "direction":  1, "weight": 0.15 }
+      ]
     }
   },
+
   "assets": {
-    "USD":    { "template": "currency",  "currency": "USD" },
-    "EUR":    { "template": "currency",  "currency": "EUR" },
-    "GBP":    { "template": "currency",  "currency": "GBP" },
-    "JPY":    { "template": "currency",  "currency": "JPY" },
-    "AUD":    { "template": "currency",  "currency": "AUD" },
-    "NZD":    { "template": "currency",  "currency": "NZD" },
-    "CAD":    { "template": "currency",  "currency": "CAD" },
-    "CHF":    { "template": "currency",  "currency": "CHF" },
-    "XAU":    { "template": "metal_usd", "currency": "USD" },
-    "XAG":    { "template": "metal_usd", "currency": "USD" },
-    "NAS100": { "template": "index_usd", "currency": "USD" },
-    "SPX500": { "template": "index_usd", "currency": "USD" },
-    "JP225":  { "template": "index_jpy", "currency": "JPY" }
+    "USD":    { "template": "currency",  "name": "US Dollar",           "category": "currency", "currency": "USD" },
+    "EUR":    { "template": "currency",  "name": "Euro",                "category": "currency", "currency": "EUR" },
+    "GBP":    { "template": "currency",  "name": "British Pound",       "category": "currency", "currency": "GBP" },
+    "JPY":    { "template": "currency",  "name": "Japanese Yen",        "category": "currency", "currency": "JPY" },
+    "AUD":    { "template": "currency",  "name": "Australian Dollar",   "category": "currency", "currency": "AUD" },
+    "NZD":    { "template": "currency",  "name": "New Zealand Dollar",  "category": "currency", "currency": "NZD" },
+    "CAD":    { "template": "currency",  "name": "Canadian Dollar",     "category": "currency", "currency": "CAD" },
+    "CHF":    { "template": "currency",  "name": "Swiss Franc",         "category": "currency", "currency": "CHF" },
+    "XAU":    { "template": "metal_usd", "name": "Gold",                "category": "commodity","currency": "USD" },
+    "XAG":    { "template": "metal_usd", "name": "Silver",              "category": "commodity","currency": "USD" },
+    "NAS100": { "template": "index_usd", "name": "Nasdaq 100",          "category": "index",    "currency": "USD" },
+    "SPX500": { "template": "index_usd", "name": "S&P 500",             "category": "index",    "currency": "USD" },
+    "JP225":  { "template": "index_jpy", "name": "Nikkei 225",          "category": "index",    "currency": "JPY" }
   }
 }

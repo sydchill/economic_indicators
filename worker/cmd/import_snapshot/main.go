@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/joho/godotenv"
 	_ "github.com/uptrace/bun/driver/pgdriver"
 
 	"github.com/sydchill/economic_indicators/worker/internal/snapshot"
@@ -30,13 +31,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	_ = godotenv.Load()
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
 		fmt.Fprintln(os.Stderr, "error: DATABASE_URL is required")
 		os.Exit(2)
 	}
-
-	db, err := sql.Open("pgx", dsn)
+	db, err := sql.Open("pg", dsn)
 	if err != nil {
 		fatal(err)
 	}

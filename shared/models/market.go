@@ -1,134 +1,158 @@
 package models
 
-import (
-	"encoding/json"
-	"time"
+import "time"
 
-	"github.com/uptrace/bun"
+// ─── Assets & Pairs ────────────────────────────────────────────────────────
+
+// Asset is a tradeable instrument that the scoring engine produces a score
+// for. Currency assets represent a single currency (USD, EUR, …); non-currency
+// assets (JP225, XAU, …) carry a Currency field linking them to the currency
+// whose economy drives them.
+type Asset struct {
+	ID        int64     `bun:"id,pk,autoincrement"                            json:"id"`
+	Code      string    `bun:"code,unique,notnull"                            json:"code"`
+	Name      string    `bun:"name,notnull"                                   json:"name"`
+	Category  string    `bun:"category,notnull"                               json:"category"`
+	Currency  string    `bun:"currency"                                       json:"currency,omitempty"`
+	CreatedAt time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp" json:"created_at"`
+	UpdatedAt time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp" json:"updated_at"`
+}
+
+// Pair is a currency pair. Symbol is the concatenation (EURUSD); Base/Quote
+// are the ISO codes that let the scoring engine compute differential scores.
+type Pair struct {
+	ID            int64     `bun:"id,pk,autoincrement"                            json:"id"`
+	Symbol        string    `bun:"symbol,unique,notnull"                          json:"symbol"`
+	BaseCurrency  string    `bun:"base_currency,notnull"                          json:"base_currency"`
+	QuoteCurrency string    `bun:"quote_currency,notnull"                         json:"quote_currency"`
+	CreatedAt     time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp" json:"created_at"`
+	UpdatedAt     time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp" json:"updated_at"`
+}
+
+// ─── Economic Indicators & Data ────────────────────────────────────────────
+
+// EconomicIndicator is the registry of every indicator the system knows about.
+// Slug is the wire format (used in snapshot files); TEName is the exact
+// TradingEconomics label, kept for audit and for the eventual API swap.
+type EconomicIndicator struct {
+	ID        int64     `bun:"id,pk,autoincrement"                            json:"id"`
+	Slug      string    `bun:"slug,unique,notnull"                            json:"slug"`
+	Name      string    `bun:"name,notnull"                                   json:"name"`
+	TEName    string    `bun:"te_name,notnull"                                json:"te_name"`
+	Category  string    `bun:"category,notnull"                               json:"category"`
+	Unit      string    `bun:"unit,notnull"                                   json:"unit"`
+	CreatedAt time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp" json:"created_at"`
+	UpdatedAt time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp" json:"updated_at"`
+}
+
+// EconomicData is one reading for one indicator on one currency for one period.
+// previous_value is the release's "Previous" column — the revised prior reading,
+// not the originally reported one. forecast_value is NULL for manual imports and
+// will be populated when the TE API lands.
+type EconomicData struct {
+	ID            int64     `bun:"id,pk,autoincrement"                            json:"id"`
+	IndicatorID   int64     `bun:"indicator_id,notnull"                           json:"indicator_id"`
+	Currency      string    `bun:"currency,notnull"                               json:"currency"`
+	Period        time.Time `bun:"period,notnull"                                 json:"period"`
+	Value         float64   `bun:"value,notnull"                                  json:"value"`
+	PreviousValue *float64  `bun:"previous_value"                                 json:"previous_value,omitempty"`
+	ForecastValue *float64  `bun:"forecast_value"                                 json:"forecast_value,omitempty"`
+	ReleaseDate   time.Time `bun:"release_date,notnull"                           json:"release_date"`
+	Source        string    `bun:"source,notnull"                                 json:"source"`
+	CreatedAt     time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp" json:"created_at"`
+	UpdatedAt     time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp" json:"updated_at"`
+
+	Indicator *EconomicIndicator `bun:"rel:belongs-to,join:indicator_id=id" json:"indicator,omitempty"`
+}
+
+// ─── Scoring Configuration ─────────────────────────────────────────────────
+
+// AssetCategoryWeight is the configured weight of a scoring category for one
+// asset. The set of weights for an asset must sum to 1.0 (the scoring engine
+// renormalizes when categories drop out, but the seed data should be balanced).
+type AssetCategoryWeight struct {
+	ID        int64     `bun:"id,pk,autoincrement"                            json:"id"`
+	AssetID   int64     `bun:"asset_id,notnull"                               json:"asset_id"`
+	Category  string    `bun:"category,notnull"                               json:"category"`
+	Weight    float64   `bun:"weight,notnull"                                 json:"weight"`
+	CreatedAt time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp" json:"created_at"`
+	UpdatedAt time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp" json:"updated_at"`
+
+	Asset *Asset `bun:"rel:belongs-to,join:asset_id=id" json:"asset,omitempty"`
+}
+
+// AssetIndicatorConfig is the per-asset configuration of one indicator:
+// Direction is +1 when rising values are bullish for the asset, -1 when
+// bearish. Weight is the indicator's share within its category.
+type AssetIndicatorConfig struct {
+	ID          int64     `bun:"id,pk,autoincrement"                            json:"id"`
+	AssetID     int64     `bun:"asset_id,notnull"                               json:"asset_id"`
+	IndicatorID int64     `bun:"indicator_id,notnull"                           json:"indicator_id"`
+	Category    string    `bun:"category,notnull"                               json:"category"` // NEW
+	Direction   int       `bun:"direction,notnull"                              json:"direction"`
+	Weight      float64   `bun:"weight,notnull"                                 json:"weight"`
+	CreatedAt   time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp" json:"created_at"`
+	UpdatedAt   time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp" json:"updated_at"`
+
+	Asset     *Asset             `bun:"rel:belongs-to,join:asset_id=id"     json:"asset,omitempty"`
+	Indicator *EconomicIndicator `bun:"rel:belongs-to,join:indicator_id=id" json:"indicator,omitempty"`
+}
+
+// ─── Scoring Output ────────────────────────────────────────────────────────
+
+// Bucket is the categorical label derived from CompositeScore. Thresholds:
+// ≥ +60 VERY_BULLISH, ≥ 0 BULLISH, > -60 BEARISH, else VERY_BEARISH.
+const (
+	BucketVeryBullish = "VERY_BULLISH"
+	BucketBullish     = "BULLISH"
+	BucketBearish     = "BEARISH"
+	BucketVeryBearish = "VERY_BEARISH"
 )
 
-type Asset struct {
-	bun.BaseModel `bun:"table:market.assets,alias:a"`
-
-	Code            string    `bun:"code,pk" json:"code"`
-	Name            string    `bun:"name,notnull" json:"name"`
-	DisplayName     string    `bun:"display_name,notnull" json:"display_name"`
-	AssetClass      string    `bun:"asset_class,notnull" json:"asset_class"`
-	PrimaryCurrency *string   `bun:"primary_currency" json:"primary_currency,omitempty"`
-	IsMajor         bool      `bun:"is_major,notnull,default:false" json:"is_major"`
-	CreatedAt       time.Time `bun:"created_at,notnull,default:now()" json:"created_at"`
-}
-
-type Pair struct {
-	bun.BaseModel `bun:"table:market.pairs,alias:p"`
-
-	Code          string    `bun:"code,pk" json:"code"`
-	BaseCurrency  string    `bun:"base_currency,notnull" json:"base_currency"`
-	QuoteCurrency string    `bun:"quote_currency,notnull" json:"quote_currency"`
-	DisplayName   string    `bun:"display_name,notnull" json:"display_name"`
-	IsMajor       bool      `bun:"is_major,notnull,default:false" json:"is_major"`
-	CreatedAt     time.Time `bun:"created_at,notnull,default:now()" json:"created_at"`
-}
-
-type EconomicIndicator struct {
-	bun.BaseModel `bun:"table:market.economic_indicators,alias:i"`
-
-	ID           int       `bun:"id,pk,autoincrement" json:"id"`
-	Code         string    `bun:"code,notnull,unique" json:"code"`
-	Name         string    `bun:"name,notnull" json:"name"`
-	CurrencyCode string    `bun:"currency_code,notnull" json:"currency_code"`
-	Category     string    `bun:"category,notnull" json:"category"`
-	Importance   string    `bun:"importance,notnull" json:"importance"`
-	Unit         string    `bun:"unit" json:"unit,omitempty"`
-	CreatedAt    time.Time `bun:"created_at,notnull,default:now()" json:"created_at"`
-}
-
-type EconomicData struct {
-	bun.BaseModel `bun:"table:market.economic_data,alias:d"`
-
-	ID            int64           `bun:"id,pk,autoincrement" json:"id"`
-	IndicatorID   int             `bun:"indicator_id,notnull" json:"indicator_id"`
-	CurrencyCode  string          `bun:"currency_code,notnull" json:"currency_code"`
-	ReleaseTime   time.Time       `bun:"release_time,notnull" json:"release_time"`
-	PeriodDate    *time.Time      `bun:"period_date,type:date" json:"period_date,omitempty"`
-	ActualValue   *float64        `bun:"actual_value" json:"actual_value,omitempty"`
-	ForecastValue *float64        `bun:"forecast_value" json:"forecast_value,omitempty"`
-	PreviousValue *float64        `bun:"previous_value" json:"previous_value,omitempty"`
-	RevisedValue  *float64        `bun:"revised_value" json:"revised_value,omitempty"`
-	Surprise      *float64        `bun:"surprise" json:"surprise,omitempty"`
-	Source        string          `bun:"source,notnull,default:'biquote'" json:"source"`
-	RawPayload    json.RawMessage `bun:"raw_payload,type:jsonb" json:"-"`
-	CreatedAt     time.Time       `bun:"created_at,notnull,default:now()" json:"created_at"`
-}
-
-type BondYield struct {
-	bun.BaseModel `bun:"table:market.bond_yields,alias:y"`
-
-	ID            int64     `bun:"id,pk,autoincrement" json:"id"`
-	CurrencyCode  string    `bun:"currency_code,notnull" json:"currency_code"`
-	MaturityYears int16     `bun:"maturity_years,notnull" json:"maturity_years"`
-	RecordDate    time.Time `bun:"record_date,type:date,notnull" json:"record_date"`
-	YieldPercent  float64   `bun:"yield_percent,notnull" json:"yield_percent"`
-	Source        string    `bun:"source,notnull,default:'fxmacrodata'" json:"source"`
-	CreatedAt     time.Time `bun:"created_at,notnull,default:now()" json:"created_at"`
-}
-
-type COTData struct {
-	bun.BaseModel `bun:"table:market.cot_data,alias:c"`
-
-	ID             int64           `bun:"id,pk,autoincrement" json:"id"`
-	AssetID        string          `bun:"asset_id,notnull" json:"asset_id"`
-	ReportDate     time.Time       `bun:"report_date,type:date,notnull" json:"report_date"`
-	ReleasedAt     time.Time       `bun:"released_at,type:date,notnull" json:"released_at"`
-	LongContracts  int             `bun:"long_contracts,notnull" json:"long_contracts"`
-	ShortContracts int             `bun:"short_contracts,notnull" json:"short_contracts"`
-	NetPosition    int             `bun:"net_position,notnull" json:"net_position"`
-	WeeklyChange   *int            `bun:"weekly_change" json:"weekly_change,omitempty"`
-	OpenInterest   *int            `bun:"open_interest" json:"open_interest,omitempty"`
-	Source         string          `bun:"source,notnull,default:'cftc'" json:"source"`
-	RawPayload     json.RawMessage `bun:"raw_payload,type:jsonb" json:"-"`
-	CreatedAt      time.Time       `bun:"created_at,notnull,default:now()" json:"created_at"`
-}
-
-type RetailSentiment struct {
-	bun.BaseModel `bun:"table:market.retail_sentiment,alias:rs"`
-
-	ID         int64     `bun:"id,pk,autoincrement" json:"id"`
-	PairCode   string    `bun:"pair_code,notnull" json:"pair_code"`
-	Timeframe  string    `bun:"timeframe,notnull" json:"timeframe"`
-	LongPct    float64   `bun:"long_pct,notnull" json:"long_pct"`
-	ShortPct   float64   `bun:"short_pct,notnull" json:"short_pct"`
-	Source     string    `bun:"source,notnull" json:"source"`
-	SnapshotAt time.Time `bun:"snapshot_at,notnull" json:"snapshot_at"`
-	CreatedAt  time.Time `bun:"created_at,notnull,default:now()" json:"created_at"`
-}
-
-type AssetCategoryWeight struct {
-	bun.BaseModel `bun:"table:market.asset_category_weights,alias:acw"`
-
-	AssetID  string          `bun:"asset_id,pk" json:"asset_id"`
-	Category string          `bun:"category,pk" json:"category"`
-	Weight   float64         `bun:"weight,notnull" json:"weight"`
-	Params   json.RawMessage `bun:"params,type:jsonb" json:"params,omitempty"`
-}
-
-type AssetIndicatorConfig struct {
-	bun.BaseModel `bun:"table:market.asset_indicator_config,alias:aic"`
-
-	AssetID     string  `bun:"asset_id,pk" json:"asset_id"`
-	IndicatorID int     `bun:"indicator_id,pk" json:"indicator_id"`
-	Category    string  `bun:"category,notnull" json:"category"`
-	Direction   int16   `bun:"direction,notnull" json:"direction"`
-	Weight      float64 `bun:"weight,notnull" json:"weight"`
-}
-
+// AssetScore is a computed score for one asset at one point in time.
+// CategoryScores holds the score for each active category (0-100 scale);
+// CategoryInputs holds the drill-down — per-indicator raw values, surprises,
+// directions, and weights that produced the category score.
 type AssetScore struct {
-	bun.BaseModel `bun:"table:market.asset_scores,alias:s"`
+	ID             int64              `bun:"id,pk,autoincrement"                            json:"id"`
+	AssetID        int64              `bun:"asset_id,notnull"                               json:"asset_id"`
+	ScoredAt       time.Time          `bun:"scored_at,notnull"                              json:"scored_at"`
+	CompositeScore float64            `bun:"composite_score,notnull"                        json:"composite_score"`
+	Bucket         string             `bun:"bucket,notnull"                                 json:"bucket"`
+	CategoryScores map[string]float64 `bun:"category_scores,type:jsonb,notnull"             json:"category_scores"`
+	CategoryInputs map[string]any     `bun:"category_inputs,type:jsonb,notnull"             json:"category_inputs"`
+	CreatedAt      time.Time          `bun:"created_at,nullzero,notnull,default:current_timestamp" json:"created_at"`
 
-	AssetID        string          `bun:"asset_id,pk" json:"asset_id"`
-	ComputedAt     time.Time       `bun:"computed_at,pk" json:"computed_at"`
-	CompositeScore float64         `bun:"composite_score,notnull" json:"composite_score"`
-	Signal         string          `bun:"signal,notnull" json:"signal"`
-	CategoryScores json.RawMessage `bun:"category_scores,type:jsonb,notnull" json:"category_scores"`
-	CategoryInputs json.RawMessage `bun:"category_inputs,type:jsonb,notnull" json:"category_inputs"`
+	Asset *Asset `bun:"rel:belongs-to,join:asset_id=id" json:"asset,omitempty"`
+}
+
+// ─── COT (populated later via CFTC CSV) ────────────────────────────────────
+
+// COTData is one CFTC commitment-of-traders row per (currency, report_date).
+// NoncommercialNet = Long - Short. Populated by a future CSV importer.
+type COTData struct {
+	ID                 int64     `bun:"id,pk,autoincrement"                            json:"id"`
+	Currency           string    `bun:"currency,notnull"                               json:"currency"`
+	ReportDate         time.Time `bun:"report_date,notnull"                            json:"report_date"`
+	NoncommercialLong  int64     `bun:"noncommercial_long,notnull"                     json:"noncommercial_long"`
+	NoncommercialShort int64     `bun:"noncommercial_short,notnull"                    json:"noncommercial_short"`
+	NoncommercialNet   int64     `bun:"noncommercial_net,notnull"                      json:"noncommercial_net"`
+	Source             string    `bun:"source,notnull"                                 json:"source"`
+	CreatedAt          time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp" json:"created_at"`
+	UpdatedAt          time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp" json:"updated_at"`
+}
+
+// RetailSentiment is one retail long/short snapshot for a pair. Populated
+// manually for now; source-of-truth TBD.
+type RetailSentiment struct {
+	ID         int64     `bun:"id,pk,autoincrement"                            json:"id"`
+	PairID     int64     `bun:"pair_id,notnull"                                json:"pair_id"`
+	SnapshotAt time.Time `bun:"snapshot_at,notnull"                            json:"snapshot_at"`
+	LongPct    float64   `bun:"long_pct,notnull"                               json:"long_pct"`
+	ShortPct   float64   `bun:"short_pct,notnull"                              json:"short_pct"`
+	Source     string    `bun:"source,notnull"                                 json:"source"`
+	CreatedAt  time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp" json:"created_at"`
+	UpdatedAt  time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp" json:"updated_at"`
+
+	Pair *Pair `bun:"rel:belongs-to,join:pair_id=id" json:"pair,omitempty"`
 }
