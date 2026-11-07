@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -195,10 +196,10 @@ func run(configPath, dateStr string, lookbackOverride int, apply, verbose bool) 
 
 	// 7. Apply
 	if !apply {
-		fmt.Println("(dry-run — pass --apply to write market.asset_scores)")
+		printPairPreview(results)
+		fmt.Println("(dry-run — pass --apply to write)")
 		return nil
 	}
-
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -239,11 +240,16 @@ func run(configPath, dateStr string, lookbackOverride int, apply, verbose bool) 
 		}
 	}
 
+	pairsInserted, pairsUpdated, err := scorePairs(ctx, tx, results, scoredAt)
+	if err != nil {
+		return fmt.Errorf("pair scoring: %w", err)
+	}
+
 	if err := tx.Commit(); err != nil {
 		return err
 	}
-
 	fmt.Printf("\napplied: inserted=%d updated=%d\n", inserted, updated)
+	fmt.Printf("pairs:   inserted=%d updated=%d\n", pairsInserted, pairsUpdated)
 	return nil
 }
 
@@ -406,4 +412,133 @@ func ptr(p *float64) any {
 		return "nil"
 	}
 	return *p
+}
+
+// HELPER
+// printPairPreview computes pair differentials from the already-computed asset
+// scores and prints a ranked table for dry-run inspection. No DB hit — the
+// pair list mirrors seed/pairs.json.
+func printPairPreview(assetResults []scoring.AssetScore) {
+	scoreByCode := map[string]float64{}
+	for _, r := range assetResults {
+		scoreByCode[r.AssetCode] = r.Composite
+	}
+
+	pairs := [][2]string{
+		{"EUR", "USD"}, {"EUR", "GBP"}, {"EUR", "JPY"}, {"EUR", "CHF"}, {"EUR", "CAD"}, {"EUR", "AUD"}, {"EUR", "NZD"},
+		{"GBP", "USD"}, {"GBP", "JPY"}, {"GBP", "CHF"}, {"GBP", "CAD"}, {"GBP", "AUD"}, {"GBP", "NZD"},
+		{"AUD", "USD"}, {"AUD", "NZD"}, {"AUD", "CAD"}, {"AUD", "CHF"}, {"AUD", "JPY"},
+		{"NZD", "USD"}, {"NZD", "CAD"}, {"NZD", "CHF"}, {"NZD", "JPY"},
+		{"USD", "CAD"}, {"USD", "CHF"}, {"USD", "JPY"},
+		{"CAD", "CHF"}, {"CAD", "JPY"},
+		{"CHF", "JPY"},
+	}
+
+	type row struct {
+		sym    string
+		diff   float64
+		base   float64
+		quote  float64
+		bucket string
+	}
+	var rr []row
+	for _, p := range pairs {
+		b, bok := scoreByCode[p[0]]
+		q, qok := scoreByCode[p[1]]
+		if !bok || !qok {
+			continue
+		}
+		d := b - q
+		rr = append(rr, row{p[0] + p[1], d, b, q, scoring.BucketPair(d)})
+	}
+
+	sort.Slice(rr, func(i, j int) bool {
+		ai, aj := rr[i].diff, rr[j].diff
+		if ai < 0 {
+			ai = -ai
+		}
+		if aj < 0 {
+			aj = -aj
+		}
+		return ai > aj
+	})
+
+	fmt.Printf("\nPair preview (%d pairs, sorted by |differential|):\n", len(rr))
+	for _, r := range rr {
+		fmt.Printf("  %-8s diff=%+7.2f  bucket=%-12s  (base=%+.1f, quote=%+.1f)\n",
+			r.sym, r.diff, r.bucket, r.base, r.quote)
+	}
+}
+
+// scorePairs writes pair_scores inside the caller's transaction. Loads pair
+// definitions from the DB (source of truth), computes differentials from the
+// asset scores already computed in this run, upserts on (pair_id, scored_at).
+func scorePairs(
+	ctx context.Context,
+	tx *sql.Tx,
+	assetResults []scoring.AssetScore,
+	scoredAt time.Time,
+) (inserted, updated int, err error) {
+	scoreByCode := make(map[string]float64, len(assetResults))
+	for _, r := range assetResults {
+		scoreByCode[r.AssetCode] = r.Composite
+	}
+
+	rows, err := tx.QueryContext(ctx, `
+		SELECT id, symbol, base_currency, quote_currency
+		FROM market.pairs
+		ORDER BY symbol
+	`)
+	if err != nil {
+		return 0, 0, err
+	}
+	defer rows.Close()
+
+	type pairRow struct {
+		id                  int64
+		symbol, base, quote string
+	}
+	var pairs []pairRow
+	for rows.Next() {
+		var p pairRow
+		if err := rows.Scan(&p.id, &p.symbol, &p.base, &p.quote); err != nil {
+			return 0, 0, err
+		}
+		pairs = append(pairs, p)
+	}
+	if err := rows.Err(); err != nil {
+		return 0, 0, err
+	}
+
+	for _, p := range pairs {
+		baseScore, baseOK := scoreByCode[p.base]
+		quoteScore, quoteOK := scoreByCode[p.quote]
+		if !baseOK || !quoteOK {
+			continue // missing side — skip defensively
+		}
+
+		ps := scoring.ScorePair(p.symbol, p.base, p.quote, baseScore, quoteScore, scoredAt)
+
+		var action string
+		err := tx.QueryRowContext(ctx, `
+			INSERT INTO market.pair_scores
+				(pair_id, scored_at, base_score, quote_score, differential, bucket)
+			VALUES ($1, $2, $3, $4, $5, $6)
+			ON CONFLICT (pair_id, scored_at) DO UPDATE
+			  SET base_score   = EXCLUDED.base_score,
+			      quote_score  = EXCLUDED.quote_score,
+			      differential = EXCLUDED.differential,
+			      bucket       = EXCLUDED.bucket
+			RETURNING CASE WHEN xmax = 0 THEN 'inserted' ELSE 'updated' END
+		`, p.id, scoredAt, ps.BaseScore, ps.QuoteScore, ps.Differential, ps.Bucket).Scan(&action)
+		if err != nil {
+			return 0, 0, fmt.Errorf("pair %s: %w", p.symbol, err)
+		}
+		if action == "inserted" {
+			inserted++
+		} else {
+			updated++
+		}
+	}
+	return inserted, updated, nil
 }

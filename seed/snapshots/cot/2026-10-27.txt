@@ -1,0 +1,95 @@
+EURO FX - CHICAGO MERCANTILE EXCHANGE                                                                   Code-099741
+Commitments of Traders - Futures Only, October 27, 2026
+-------------------------------------------------------------------------------------------------------------------
+     :   Total  :                        Reportable Positions                                :   Nonreportable
+     :----------------------------------------------------------------------------------------     Positions
+     :   Open   :           Non-Commercial       :     Commercial      :       Total         :
+     : Interest :   Long   :  Short   : Spreading:   Long   :  Short   :   Long   :  Short   :   Long   :  Short
+-------------------------------------------------------------------------------------------------------------------
+     :          : (CONTRACTS OF EUR 125,000)                                                 :
+     :          :                                                                            :
+All  :   868,188:   230,646    374,540     49,306    504,851    390,367    784,803    814,213:    83,385     53,975
+
+BRITISH POUND - CHICAGO MERCANTILE EXCHANGE                                                             Code-096742
+Commitments of Traders - Futures Only, October 27, 2026
+-------------------------------------------------------------------------------------------------------------------
+     :   Total  :                        Reportable Positions                                :   Nonreportable
+     :----------------------------------------------------------------------------------------     Positions
+     :   Open   :           Non-Commercial       :     Commercial      :       Total         :
+     : Interest :   Long   :  Short   : Spreading:   Long   :  Short   :   Long   :  Short   :   Long   :  Short
+-------------------------------------------------------------------------------------------------------------------
+     :          : (CONTRACTS OF GBP 62,500)                                                  :
+     :          :                                                                            :
+All  :   253,937:    56,645    136,059      3,164    170,983     81,085    230,792    220,308:    23,145     33,629
+
+JAPANESE YEN - CHICAGO MERCANTILE EXCHANGE                                                              Code-097741
+Commitments of Traders - Futures Only, October 27, 2026
+-------------------------------------------------------------------------------------------------------------------
+     :   Total  :                        Reportable Positions                                :   Nonreportable
+     :----------------------------------------------------------------------------------------     Positions
+     :   Open   :           Non-Commercial       :     Commercial      :       Total         :
+     : Interest :   Long   :  Short   : Spreading:   Long   :  Short   :   Long   :  Short   :   Long   :  Short
+-------------------------------------------------------------------------------------------------------------------
+     :          : (CONTRACTS OF JPY 12,500,000)                                              :
+     :          :                                                                            :
+All  :   374,026:   225,516    123,925      2,260    109,221    214,311    336,997    340,496:    37,029     33,530
+
+SWISS FRANC - CHICAGO MERCANTILE EXCHANGE                                                               Code-092741
+Commitments of Traders - Futures Only, October 27, 2026
+-------------------------------------------------------------------------------------------------------------------
+     :   Total  :                        Reportable Positions                                :   Nonreportable
+     :----------------------------------------------------------------------------------------     Positions
+     :   Open   :           Non-Commercial       :     Commercial      :       Total         :
+     : Interest :   Long   :  Short   : Spreading:   Long   :  Short   :   Long   :  Short   :   Long   :  Short
+-------------------------------------------------------------------------------------------------------------------
+     :          : (CONTRACTS OF CHF 125,000)                                                 :
+     :          :                                                                            :
+All  :   135,489:    26,254     46,303     11,357     88,339     54,706    125,950    112,366:     9,539     23,123
+
+CANADIAN DOLLAR - CHICAGO MERCANTILE EXCHANGE                                                           Code-090741
+Commitments of Traders - Futures Only, October 27, 2026
+-------------------------------------------------------------------------------------------------------------------
+     :   Total  :                        Reportable Positions                                :   Nonreportable
+     :----------------------------------------------------------------------------------------     Positions
+     :   Open   :           Non-Commercial       :     Commercial      :       Total         :
+     : Interest :   Long   :  Short   : Spreading:   Long   :  Short   :   Long   :  Short   :   Long   :  Short
+-------------------------------------------------------------------------------------------------------------------
+     :          : (CONTRACTS OF CAD 100,000)                                                 :
+     :          :                                                                            :
+All  :   360,941:    89,942    156,366      4,133    239,393    165,133    333,468    325,632:    27,473     35,309
+
+AUSTRALIAN DOLLAR - CHICAGO MERCANTILE EXCHANGE                                                         Code-232741
+Commitments of Traders - Futures Only, October 27, 2026
+-------------------------------------------------------------------------------------------------------------------
+     :   Total  :                        Reportable Positions                                :   Nonreportable
+     :----------------------------------------------------------------------------------------     Positions
+     :   Open   :           Non-Commercial       :     Commercial      :       Total         :
+     : Interest :   Long   :  Short   : Spreading:   Long   :  Short   :   Long   :  Short   :   Long   :  Short
+-------------------------------------------------------------------------------------------------------------------
+     :          : (CONTRACTS OF AUD 100,000)                                                 :
+     :          :                                                                            :
+All  :   325,008:   101,057    229,372      1,277    190,329     79,094    292,663    309,743:    32,345     15,265
+
+NZ DOLLAR - CHICAGO MERCANTILE EXCHANGE                                                                 Code-112741
+Commitments of Traders - Futures Only, October 27, 2026
+-------------------------------------------------------------------------------------------------------------------
+     :   Total  :                        Reportable Positions                                :   Nonreportable
+     :----------------------------------------------------------------------------------------     Positions
+     :   Open   :           Non-Commercial       :     Commercial      :       Total         :
+     : Interest :   Long   :  Short   : Spreading:   Long   :  Short   :   Long   :  Short   :   Long   :  Short
+-------------------------------------------------------------------------------------------------------------------
+     :          : (CONTRACTS OF NZD 100,000)                                                 :
+     :          :                                                                            :
+All  :   129,053:    18,062     75,752        408    106,324     46,778    124,794    122,938:     4,259      6,115
+
+USD INDEX - ICE FUTURES U.S.                                                                            Code-098662
+Commitments of Traders - Futures Only, October 27, 2026
+-------------------------------------------------------------------------------------------------------------------
+     :   Total  :                        Reportable Positions                                :   Nonreportable
+     :----------------------------------------------------------------------------------------     Positions
+     :   Open   :           Non-Commercial       :     Commercial      :       Total         :
+     : Interest :   Long   :  Short   : Spreading:   Long   :  Short   :   Long   :  Short   :   Long   :  Short
+-------------------------------------------------------------------------------------------------------------------
+     :          : (U.S. DOLLAR INDEX X $1000)                                                :
+     :          :                                                                            :
+All  :    48,263:    31,254     17,133      1,537     11,692     27,780     44,483     46,450:     3,780      1,813

@@ -89,3 +89,30 @@ func Bucket(composite float64) string {
 		return BucketVeryBearish
 	}
 }
+
+const BucketNeutral = "NEUTRAL"
+
+// BucketPair maps a pair differential to a categorical label.
+//
+// Unlike Bucket(), this adds a NEUTRAL band between −10 and +10 so that
+// near-zero differentials can be filtered out of the Top Setups screen.
+// Same thresholds elsewhere:
+//   >= +60   VERY_BULLISH
+//   > +10    BULLISH
+//   >= -10   NEUTRAL
+//   > -60    BEARISH
+//   <= -60   VERY_BEARISH
+func BucketPair(differential float64) string {
+	switch {
+	case differential >= 60:
+		return BucketVeryBullish
+	case differential > 10:
+		return BucketBullish
+	case differential >= -10:
+		return BucketNeutral
+	case differential > -60:
+		return BucketBearish
+	default:
+		return BucketVeryBearish
+	}
+}
