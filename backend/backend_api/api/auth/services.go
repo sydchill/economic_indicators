@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgconn"
-	userpkg "github.com/sydchill/economic_indicators/shared/models"
+	userpkg "github.com/sydchill/economic_indicators/backend/shared/models"
 	"github.com/uptrace/bun"
 )
 

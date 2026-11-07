@@ -9,7 +9,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/sydchill/economic_indicators/shared/config"
+	"github.com/sydchill/economic_indicators/backend/shared/config"
 	_ "github.com/uptrace/bun/driver/pgdriver"
 )
 

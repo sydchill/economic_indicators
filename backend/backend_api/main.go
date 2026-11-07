@@ -13,9 +13,9 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/uptrace/bun"
 
-	"github.com/sydchill/economic_indicators/backend/api/auth"
-	"github.com/sydchill/economic_indicators/shared/config"
-	"github.com/sydchill/economic_indicators/shared/db"
+	"github.com/sydchill/economic_indicators/backend/backend_api/api/auth"
+	"github.com/sydchill/economic_indicators/backend/shared/config"
+	"github.com/sydchill/economic_indicators/backend/shared/db"
 )
 
 func main() {

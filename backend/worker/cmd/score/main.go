@@ -14,7 +14,7 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/uptrace/bun/driver/pgdriver"
 
-	"github.com/sydchill/economic_indicators/worker/internal/scoring"
+	"github.com/sydchill/economic_indicators/backend/worker/internal/scoring"
 )
 
 type configFile struct {

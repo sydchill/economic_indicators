@@ -1,5 +1,4 @@
-module github.com/sydchill/economic_indicators
-
+module github.com/sydchill/economic_indicators/backend
 go 1.26.0
 
 // go.mod additions
