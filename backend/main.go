@@ -15,7 +15,6 @@ import (
 
 	"github.com/sydchill/economic_indicators/backend/api/auth"
 	"github.com/sydchill/economic_indicators/shared/config"
-
 	"github.com/sydchill/economic_indicators/shared/db"
 )
 
@@ -39,7 +38,7 @@ func main() {
 
 	authSvc := auth.NewService(bunDB, cfg.GoogleClientID)
 	authH := auth.NewHandler(authSvc)
-
+	// marketH := market.NewHandler(bunDB)
 	r := chi.NewRouter()
 	r.Get("/health", healthHandler(bunDB))
 	r.Mount("/api/auth", authH.Routes())
