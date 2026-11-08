@@ -20,6 +20,14 @@
     </div>
 
     <div class="navbar-menu" :class="{ 'is-active': menuOpen }">
+      <div class="navbar-start">
+        <RouterLink :to="{ name: 'dashboard' }" class="navbar-item nav-link">
+          Dashboard
+        </RouterLink>
+        <RouterLink :to="{ name: 'scores' }" class="navbar-item nav-link">
+          Asset Scores
+        </RouterLink>
+      </div>
       <div class="navbar-end">
         <template v-if="auth.user">
           <div class="navbar-item">

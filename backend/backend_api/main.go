@@ -14,6 +14,7 @@ import (
 	"github.com/uptrace/bun"
 
 	"github.com/sydchill/economic_indicators/backend/backend_api/api/auth"
+	"github.com/sydchill/economic_indicators/backend/backend_api/api/market"
 	"github.com/sydchill/economic_indicators/backend/shared/config"
 	"github.com/sydchill/economic_indicators/backend/shared/db"
 )
@@ -34,15 +35,13 @@ func main() {
 	}
 	defer bunDB.Close()
 
-	// Migrations deferred to cmd/migrate in the next component.
-
 	authSvc := auth.NewService(bunDB, cfg.GoogleClientID)
 	authH := auth.NewHandler(authSvc)
-	// marketH := market.NewHandler(bunDB)
+	marketH := market.NewHandler(bunDB)
 	r := chi.NewRouter()
 	r.Get("/health", healthHandler(bunDB))
 	r.Mount("/api/auth", authH.Routes())
-
+	r.Mount("/api/market", marketH.Routes())
 	srv := &http.Server{
 		Addr:              cfg.HTTPAddr,
 		Handler:           r,

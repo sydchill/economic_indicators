@@ -25,3 +25,7 @@ go run ./worker/cmd/import_cot --file snapshots/cot/deafut-2026-11-13.txt --appl
 
 # 5. Score
 go run ./worker/cmd/score --date 2026-11-13 -v --apply
+
+
+6. Build
+go build ./...
