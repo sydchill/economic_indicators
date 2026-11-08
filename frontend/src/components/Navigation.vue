@@ -27,6 +27,9 @@
         <RouterLink :to="{ name: 'scores' }" class="navbar-item nav-link">
           Asset Scores
         </RouterLink>
+        <RouterLink :to="{ name: 'setups' }" class="navbar-item nav-link">
+          Trade Setups
+        </RouterLink>
       </div>
       <div class="navbar-end">
         <template v-if="auth.user">

@@ -37,3 +37,17 @@ export interface AssetScore {
   category_inputs: Record<string, CategoryInput> | null
   has_score: boolean
 }
+
+export type PairBucket = 'VERY_BULLISH' | 'BULLISH' | 'NEUTRAL' | 'BEARISH' | 'VERY_BEARISH'
+
+export interface PairScore {
+  symbol: string
+  base_currency: string
+  quote_currency: string
+  base_score: number | null
+  quote_score: number | null
+  differential: number | null
+  bucket: PairBucket | null
+  scored_at: string | null
+  has_score: boolean
+}
