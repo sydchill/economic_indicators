@@ -39,9 +39,14 @@ var currencyByCode = map[string]string{
 	"232741": "AUD", // AUSTRALIAN DOLLAR
 	"112741": "NZD", // NZ DOLLAR
 	"098662": "USD", // USD INDEX (ICE Futures U.S.)
+	"13874A": "SPX500",
+	"209742": "NAS100",
+	"240743": "JP225",
+	"088691": "XAU",
+	"084691": "XAG",
 }
 
-var expectedCurrencies = []string{"EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "NZD", "USD"}
+var expectedCurrencies = []string{"EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "NZD", "USD", "SPX500", "NAS100", "JP225", "XAU", "XAG"}
 
 type cotRecord struct {
 	Currency string

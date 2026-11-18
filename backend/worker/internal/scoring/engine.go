@@ -7,15 +7,19 @@ import (
 
 // ComputeSignal produces the score contribution for one indicator observation.
 //
-// v1 uses trend mode only, because forecast_value is NULL on every row we have
-// (manual imports don't carry TE forecasts). Trend mode = sign(change) × 100,
-// where change = value − previous_value. This is deliberately coarse: without
-// historical std devs we can't compute a defensible z-score, and inventing one
-// per-indicator would hide the assumption. RawChange is preserved so the
-// drill-down shows exactly what moved.
+// Standard indicators (growth, labour, inflation, cot) use trend mode:
+//   signal = sign(value − previous_value) × 100
 //
-// Surprise mode is stubbed for the TE API swap — once forecast_value is
-// populated, (value − forecast) / std(surprise) slots in here.
+// Policy rate (cb.policy_rate) uses Option C hybrid mode:
+//   trend   = sign(value − previous_value) × 100
+//   level   = clamp((value − 2.5) / 2.5, −1, +1) × 100
+//   signal  = 0.5 × trend + 0.5 × level
+//
+// The level component captures structural carry (a 4% rate is bullish
+// regardless of whether it changed this week), while the trend component
+// preserves the fresh-catalyst signal of a hike or cut. Direction is
+// applied last, so gold/indices with direction −1 automatically invert
+// the level component.
 func ComputeSignal(
 	cfg IndicatorConfig,
 	obs *Observation,
@@ -44,7 +48,9 @@ func ComputeSignal(
 		return sig
 	}
 
-	if obs.PreviousValue == nil {
+	// Policy rate can score on level alone — allow missing previous_value.
+	isPolicyRate := cfg.Slug == "cb.policy_rate"
+	if obs.PreviousValue == nil && !isPolicyRate {
 		sig.Mode = ModeDropped
 		if obs.IsCOT {
 			sig.DropReason = "no prior COT report"
@@ -54,8 +60,25 @@ func ComputeSignal(
 		return sig
 	}
 
-	change := obs.Value - *obs.PreviousValue
-	sig.RawChange = &change
+	var change float64
+	if obs.PreviousValue != nil {
+		change = obs.Value - *obs.PreviousValue
+		sig.RawChange = &change
+	}
+
+	if isPolicyRate {
+		trend := 0.0
+		switch {
+		case change > 0:
+			trend = 100.0
+		case change < 0:
+			trend = -100.0
+		}
+		level := clamp((obs.Value-2.5)/2.5, -1, 1) * 100.0
+		sig.Signal = (0.5*trend + 0.5*level) * float64(cfg.Direction)
+		sig.Mode = ModePolicyRate
+		return sig
+	}
 
 	raw := 0.0
 	switch {
@@ -71,6 +94,16 @@ func ComputeSignal(
 		sig.Mode = ModeTrend
 	}
 	return sig
+}
+
+func clamp(x, lo, hi float64) float64 {
+	if x < lo {
+		return lo
+	}
+	if x > hi {
+		return hi
+	}
+	return x
 }
 
 // ScoreAsset aggregates per-category scores and the composite score for one asset.

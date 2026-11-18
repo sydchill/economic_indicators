@@ -30,10 +30,11 @@ type Observation struct {
 // Output types --------------------------------------------------------------
 
 const (
-	ModeTrend    = "trend"
-	ModeSurprise = "surprise"
-	ModeDropped  = "dropped"
-	ModeCOT      = "cot"
+	ModeTrend      = "trend"
+	ModeSurprise   = "surprise"
+	ModeDropped    = "dropped"
+	ModeCOT        = "cot"
+	ModePolicyRate = "policy_rate"
 )
 
 type IndicatorSignal struct {

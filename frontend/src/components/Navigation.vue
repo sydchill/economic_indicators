@@ -34,7 +34,7 @@
       <div class="navbar-end">
         <template v-if="auth.user">
           <div class="navbar-item">
-            <span class="user-email">{{ auth.user.email }}</span>
+            <!-- <span class="user-email">{{ auth.user.email }}</span> -->
           </div>
           <div class="navbar-item">
             <button class="button is-small is-light" @click="onLogout">Sign out</button>

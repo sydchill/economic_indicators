@@ -8,7 +8,7 @@
         <h2 class="title is-3">Welcome back</h2>
 
         <p v-if="auth.user" class="subtitle is-6 has-text-grey">
-          Signed in as <strong class="has-text-white">{{ auth.user.email }}</strong>
+          <!-- Signed in as <strong class="has-text-white">{{ auth.user.email }}</strong> -->
           <span v-if="!auth.user.email_verified" class="tag is-danger is-light ml-2">
             email not verified
           </span>

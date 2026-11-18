@@ -1,0 +1,9 @@
+NASDAQ MINI - CHICAGO MERCANTILE EXCHANGE                                                               Code-209742
+Commitments of Traders - Futures Only, November 03, 2026
+All  :   292,587:    88,899     46,026      4,279    150,650    213,920    243,828    264,225:    48,759     28,362
+NIKKEI STOCK AVERAGE YEN DENOM - CHICAGO MERCANTILE EXCHANGE                                            Code-240743
+Commitments of Traders - Futures Only, November 03, 2026
+All  :    26,231:     7,048      4,529         42     14,248      7,863     21,338     12,434:     4,893     13,797
+E-MINI S&P 500 - CHICAGO MERCANTILE EXCHANGE                                                            Code-13874A
+Commitments of Traders - Futures Only, November 03, 2026
+All  : 1,986,532:   229,322    358,736     53,006  1,444,052  1,438,857  1,726,380  1,850,599:   260,152    135,933
